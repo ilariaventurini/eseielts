@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "eseielts-2026",
+    "staging": "eseielts-2026"
+  },
+  "targets": {},
+  "etags": {}
+}

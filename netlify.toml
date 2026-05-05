@@ -1,0 +1,20 @@
+[build]
+  command = "yarn build"
+  publish = "dist"
+
+# Run `yarn dev:netlify` (or `netlify dev`) locally so /.netlify/functions/* is available.
+# Plain `yarn dev` only starts Vite — feedback requests will 404 without VITE_GEMINI_FEEDBACK_URL.
+[dev]
+  command = "yarn dev"
+  port = 8888
+  targetPort = 5173
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

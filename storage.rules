@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Task 1 images: only the owner can read/write via the SDK. getDownloadURL() needs read.
+    // HTTP GET with the tokenized download URL still works for Gemini / <img> without listing the bucket.
+    match /writing-task1-images/{userId}/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
