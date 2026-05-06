@@ -218,6 +218,13 @@ export default function WritingPage() {
 
       {phase === 'write' && prompt ? (
         <div className="flex flex-col gap-4">
+          {belowMin ? (
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              You are below the suggested minimum; you can still submit, but very short answers are
+              penalised in IELTS Writing.
+            </p>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle>

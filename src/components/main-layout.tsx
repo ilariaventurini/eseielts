@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet } from 'react-router'
 import { AuthToolbar } from '@/components/auth-toolbar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { ROUTES } from '@/constants/routes.constants'
 import { cn } from '@/lib/utils'
 
@@ -17,21 +18,21 @@ function ShellNavLink({
   readonly children: ReactNode
 }) {
   return (
-    <Button asChild variant="ghost" size="sm" className="cursor-pointer px-2">
-      <NavLink
-        to={to}
-        end={end}
-        className={({ isActive }) =>
-          cn(
-            isActive
-              ? 'text-foreground'
-              : 'text-muted-foreground hover:text-foreground',
-          )
-        }
-      >
-        {children}
-      </NavLink>
-    </Button>
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cn(
+          buttonVariants({ variant: 'ghost', size: 'sm' }),
+          'cursor-pointer px-2',
+          isActive
+            ? 'bg-accent text-accent-foreground'
+            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+        )
+      }
+    >
+      {children}
+    </NavLink>
   )
 }
 
