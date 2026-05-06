@@ -77,6 +77,27 @@ export async function createWritingPrompts(
   )
 }
 
+function writingPromptCreatedMs(createdAt: WritingPrompt['createdAt']) {
+  if (createdAt !== null && typeof createdAt.toMillis === 'function') {
+    return createdAt.toMillis()
+  }
+  return 0
+}
+
+/** All prompts in Firestore, newest first (by `createdAt` when present). */
+export async function fetchAllWritingPrompts() {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const col = collection(db, FIRESTORE_COLLECTIONS.writingPrompts)
+  const snap = await getDocs(col)
+  const prompts = snap.docs.map((doc) => mapPrompt(doc.id, doc.data()))
+  return [...prompts].sort(
+    (a, b) => writingPromptCreatedMs(b.createdAt) - writingPromptCreatedMs(a.createdAt),
+  )
+}
+
 export async function fetchRandomWritingPrompt(task: WritingTask) {
   const db = getDb()
   if (!db) {
