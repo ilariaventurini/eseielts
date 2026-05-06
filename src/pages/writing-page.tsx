@@ -4,8 +4,8 @@ import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { WritingTask1Visual } from '@/components/writing-task1-visual'
 import { ROUTES } from '@/constants/routes.constants'
 import { writingDraftStorageKey } from '@/constants/storage.constants'
 import { TARGET_CEFR_LEVEL, WRITING_TASK_MIN_WORDS } from '@/constants/writing.constants'
@@ -225,20 +225,15 @@ export default function WritingPage() {
               </CardTitle>
               <CardDescription className="whitespace-pre-wrap">{prompt.body}</CardDescription>
               {prompt.imageUrl ? (
-                <figure className="mt-4 overflow-hidden rounded-md border bg-muted">
-                  <img
-                    src={prompt.imageUrl}
-                    alt={
-                      prompt.title.length > 0
-                        ? `${prompt.title} (Task 1 visual)`
-                        : 'IELTS Task 1 visual — chart, map, diagram, or process'
-                    }
-                    className="mx-auto max-h-[min(28rem,55vh)] w-full object-contain"
-                  />
-                  <figcaption className="sr-only">
-                    Task 1 image referenced in the prompt above.
-                  </figcaption>
-                </figure>
+                <WritingTask1Visual
+                  imageUrl={prompt.imageUrl}
+                  imageAlt={
+                    prompt.title.length > 0
+                      ? `${prompt.title} (Task 1 visual)`
+                      : 'IELTS Task 1 visual — chart, map, diagram, or process'
+                  }
+                  resetTransformKey={prompt.id}
+                />
               ) : null}
             </CardHeader>
           </Card>
@@ -249,25 +244,17 @@ export default function WritingPage() {
               Words: {String(wordCount)} / suggested min. {String(minWords)}
             </span>
           </div>
-          {belowMin ? (
-            <p className="text-sm text-amber-600 dark:text-amber-400">
-              You are below the suggested minimum; you can still submit, but very short answers are
-              penalised in IELTS Writing.
-            </p>
-          ) : null}
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="writing-answer">Your answer</Label>
-            <Textarea
-              id="writing-answer"
-              value={answer}
-              onChange={(e) => {
-                persistAnswer(e.target.value)
-              }}
-              rows={16}
-              placeholder="Write your response here…"
-            />
-          </div>
+          <Textarea
+            id="writing-answer"
+            value={answer}
+            onChange={(e) => {
+              persistAnswer(e.target.value)
+            }}
+            rows={16}
+            placeholder="Write your response here…"
+            aria-label="Your writing response"
+          />
 
           <div className="flex flex-wrap gap-2">
             <Button
