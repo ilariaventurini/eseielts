@@ -140,7 +140,7 @@ export const handler: Handler = async (event) => {
   }
 
   const input = parsed.data
-  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash'
+  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'
 
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({

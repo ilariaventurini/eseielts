@@ -1,0 +1,2 @@
+# SPA fallback for production deploys (copied to dist by Vite). Not used by netlify dev — see netlify.toml [dev].publish.
+/*    /index.html   200

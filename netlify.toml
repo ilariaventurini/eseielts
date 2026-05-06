@@ -4,17 +4,15 @@
 
 # Run `yarn dev:netlify` (or `netlify dev`) locally so /.netlify/functions/* is available.
 # Plain `yarn dev` only starts Vite — feedback requests will 404 without VITE_GEMINI_FEEDBACK_URL.
+#
+# Use an empty publish dir for local dev so we do not load dist/_redirects (SPA rewrite would
+# break Vite module URLs like /src/main.tsx). Production SPA routing lives in public/_redirects.
 [dev]
   command = "yarn dev"
   port = 8888
   targetPort = 5173
-  publish = "dist"
+  publish = "dev-publish"
 
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
