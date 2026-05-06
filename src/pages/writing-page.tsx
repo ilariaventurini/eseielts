@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -23,7 +24,7 @@ type Phase = 'pick' | 'write' | 'done'
 
 export default function WritingPage() {
   const [phase, setPhase] = useState<Phase>('pick')
-  const [task, setTask] = useState<WritingTask>(2)
+  const [task, setTask] = useState<WritingTask>(1)
   const [prompt, setPrompt] = useState<WritingPrompt | null>(null)
   const [answer, setAnswer] = useState('')
   const [elapsedSec, setElapsedSec] = useState(0)
@@ -194,13 +195,21 @@ export default function WritingPage() {
           <CardContent>
             <Button
               type="button"
-              className="cursor-pointer"
+              className="cursor-pointer inline-flex items-center gap-2"
               disabled={loading || !firebaseReady}
+              aria-busy={loading}
               onClick={() => {
                 void handleRandomPrompt()
               }}
             >
-              {loading ? 'Loading…' : 'Draw random prompt'}
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                  Loading…
+                </>
+              ) : (
+                'Draw random prompt'
+              )}
             </Button>
             {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
           </CardContent>
@@ -263,13 +272,21 @@ export default function WritingPage() {
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              className="cursor-pointer"
+              className="cursor-pointer inline-flex items-center gap-2"
               disabled={loading || answer.trim().length === 0}
+              aria-busy={loading}
               onClick={() => {
                 void handleSubmit()
               }}
             >
-              {loading ? 'Sending to Gemini…' : 'Submit for feedback'}
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                  Sending to Gemini…
+                </>
+              ) : (
+                'Submit for feedback'
+              )}
             </Button>
             <Button
               type="button"
