@@ -1,5 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
-import type { Part } from '@google/generative-ai'
+import {
+  GoogleGenerativeAI,
+  GoogleGenerativeAIFetchError,
+} from '@google/generative-ai'
+import type { GenerateContentResult, Part } from '@google/generative-ai'
 import type { Handler } from '@netlify/functions'
 import { z } from 'zod'
 
@@ -77,6 +80,83 @@ const MAX_IMAGE_BYTES = 4 * 1024 * 1024
 const MIN_GEMINI_BUDGET_MS = 8000
 const IMAGE_FETCH_MAX_MS = 22_000
 const LAMBDA_FINISH_BUFFER_MS = 2000
+const GEMINI_RETRY_DEFAULT_ATTEMPTS = 4
+const GEMINI_RETRY_MIN_REMAINING_MS =
+  LAMBDA_FINISH_BUFFER_MS + MIN_GEMINI_BUDGET_MS + 1200
+
+function parseGeminiRetryMaxAttempts(): number {
+  const raw = process.env.GEMINI_RETRY_MAX_ATTEMPTS
+  if (raw === undefined || raw.trim() === '') {
+    return GEMINI_RETRY_DEFAULT_ATTEMPTS
+  }
+  const n = Number.parseInt(raw, 10)
+  if (!Number.isFinite(n) || n < 1) {
+    return GEMINI_RETRY_DEFAULT_ATTEMPTS
+  }
+  return Math.min(8, n)
+}
+
+function isRetryableGeminiError(err: unknown): boolean {
+  if (err instanceof GoogleGenerativeAIFetchError) {
+    return (
+      err.status === 429 ||
+      err.status === 500 ||
+      err.status === 502 ||
+      err.status === 503
+    )
+  }
+  if (err instanceof Error) {
+    const m = err.message
+    const lower = m.toLowerCase()
+    return (
+      m.includes('[429 ') ||
+      m.includes('[500 ') ||
+      m.includes('[502 ') ||
+      m.includes('[503 ') ||
+      lower.includes('high demand') ||
+      lower.includes('service unavailable') ||
+      lower.includes('resource exhausted') ||
+      m.includes('UNAVAILABLE')
+    )
+  }
+  return false
+}
+
+function sleepMs(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
+async function invokeGeminiWithRetries(
+  invoke: () => Promise<GenerateContentResult>,
+  maxAttempts: number,
+  getRemainingMs: () => number,
+): Promise<GenerateContentResult> {
+  let attempt = 0
+  while (attempt < maxAttempts) {
+    attempt += 1
+    try {
+      return await invoke()
+    } catch (err) {
+      const attemptsLeft = attempt < maxAttempts
+      const retryable = isRetryableGeminiError(err)
+      const remaining = getRemainingMs()
+      const backoffBase = 700 * 2 ** (attempt - 1)
+      const jitter = Math.floor(Math.random() * 450)
+      const backoff = Math.min(12_000, backoffBase + jitter)
+      if (
+        !attemptsLeft ||
+        !retryable ||
+        remaining <= GEMINI_RETRY_MIN_REMAINING_MS + backoff
+      ) {
+        throw err
+      }
+      await sleepMs(backoff)
+    }
+  }
+  throw new Error('Gemini retry exhausted')
+}
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   if (ms <= 0) {
@@ -206,14 +286,21 @@ ${input.answer}`
     }
     parts.push({ text: userContent })
 
-    const geminiBudget = Math.max(
-      MIN_GEMINI_BUDGET_MS,
-      context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS,
-    )
-    const result = await withTimeout(
-      model.generateContent(parts),
-      geminiBudget,
-      'Gemini request',
+    const maxAttempts = parseGeminiRetryMaxAttempts()
+    const result = await invokeGeminiWithRetries(
+      () => {
+        const geminiBudget = Math.max(
+          MIN_GEMINI_BUDGET_MS,
+          context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS,
+        )
+        return withTimeout(
+          model.generateContent(parts),
+          geminiBudget,
+          'Gemini request',
+        )
+      },
+      maxAttempts,
+      () => context.getRemainingTimeInMillis(),
     )
     const text = result.response.text()
     const feedbackUnknown = JSON.parse(text) as unknown
@@ -234,6 +321,13 @@ ${input.answer}`
       message.includes('no time left before function timeout')
     ) {
       message = `${message} If this happens often, increase the Netlify function timeout for gemini-feedback (see netlify.toml) or upgrade your Netlify plan limit.`
+    }
+    if (
+      message.includes('[503') ||
+      message.toLowerCase().includes('high demand') ||
+      message.includes('[429')
+    ) {
+      message = `${message} The API may be temporarily overloaded; this function retries automatically up to ${String(parseGeminiRetryMaxAttempts())} time(s). Try submitting again in a minute.`
     }
     return {
       statusCode: 502,
