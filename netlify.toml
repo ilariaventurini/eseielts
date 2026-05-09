@@ -16,3 +16,8 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+# Task 1 sends a downloaded image to Gemini; cold start + multimodal can exceed the default limit.
+# Cap depends on your Netlify plan (e.g. up to 60s on plans that allow it).
+[functions."gemini-feedback"]
+  timeout = 60

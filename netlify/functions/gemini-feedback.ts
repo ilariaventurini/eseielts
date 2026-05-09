@@ -74,8 +74,32 @@ const jsonHeaders = {
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024
 
-async function fetchImagePart(url: string): Promise<Part> {
-  const res = await fetch(url, { redirect: 'follow' })
+const MIN_GEMINI_BUDGET_MS = 8000
+const IMAGE_FETCH_MAX_MS = 22_000
+const LAMBDA_FINISH_BUFFER_MS = 2000
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  if (ms <= 0) {
+    return Promise.reject(new Error(`${label}: no time left before function timeout`))
+  }
+  let id: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    id = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${String(ms)}ms`))
+    }, ms)
+  })
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (id !== undefined) {
+      clearTimeout(id)
+    }
+  })
+}
+
+async function fetchImagePart(url: string, fetchTimeoutMs: number): Promise<Part> {
+  const res = await fetch(url, {
+    redirect: 'follow',
+    signal: AbortSignal.timeout(fetchTimeoutMs),
+  })
   if (!res.ok) {
     throw new Error(`Could not download image (HTTP ${String(res.status)})`)
   }
@@ -94,7 +118,7 @@ async function fetchImagePart(url: string): Promise<Part> {
   return { inlineData: { mimeType, data } }
 }
 
-export const handler: Handler = async (event) => {
+export const handler: Handler = async (event, context) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: jsonHeaders, body: '' }
   }
@@ -147,6 +171,7 @@ export const handler: Handler = async (event) => {
     model: modelName,
     generationConfig: {
       responseMimeType: 'application/json',
+      maxOutputTokens: 8192,
     },
     systemInstruction: buildInstruction(input.task, input.targetLevel),
   })
@@ -168,7 +193,12 @@ ${input.answer}`
 
     const parts: Part[] = []
     if (input.task === 1 && imageUrl !== null) {
-      const imagePart = await fetchImagePart(imageUrl)
+      const remainingAfterImage = context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS
+      const imageFetchMs = Math.min(
+        IMAGE_FETCH_MAX_MS,
+        Math.max(3000, Math.floor(remainingAfterImage * 0.35)),
+      )
+      const imagePart = await fetchImagePart(imageUrl, imageFetchMs)
       parts.push({
         text: 'The image below is the Task 1 visual (chart, map, diagram, or process) the learner must describe. Use it together with the printed prompt.',
       })
@@ -176,7 +206,15 @@ ${input.answer}`
     }
     parts.push({ text: userContent })
 
-    const result = await model.generateContent(parts)
+    const geminiBudget = Math.max(
+      MIN_GEMINI_BUDGET_MS,
+      context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS,
+    )
+    const result = await withTimeout(
+      model.generateContent(parts),
+      geminiBudget,
+      'Gemini request',
+    )
     const text = result.response.text()
     const feedbackUnknown = JSON.parse(text) as unknown
     const feedback = feedbackSchema.parse(feedbackUnknown)
@@ -186,7 +224,17 @@ ${input.answer}`
       body: JSON.stringify({ feedback, rawModelText: text }),
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Gemini error'
+    let message = err instanceof Error ? err.message : 'Gemini error'
+    if (err instanceof Error && err.name === 'AbortError') {
+      message =
+        'Downloading the Task 1 image took too long. Try again, or use a smaller or faster-hosted image URL.'
+    }
+    if (
+      message.includes('timed out') ||
+      message.includes('no time left before function timeout')
+    ) {
+      message = `${message} If this happens often, increase the Netlify function timeout for gemini-feedback (see netlify.toml) or upgrade your Netlify plan limit.`
+    }
     return {
       statusCode: 502,
       headers: jsonHeaders,
