@@ -30,7 +30,7 @@ export function AuthToolbar() {
     return (
       <div className="flex max-w-full flex-wrap items-center gap-2">
         <span
-          className="max-w-[10rem] truncate text-xs text-muted-foreground sm:max-w-[12rem]"
+          className="max-w-40 truncate text-xs text-muted-foreground sm:max-w-[12rem]"
           title={user.email ?? undefined}
         >
           {label}
@@ -44,7 +44,7 @@ export function AuthToolbar() {
             void handleSignOut()
           }}
         >
-          Sign out
+          ➜]
         </Button>
       </div>
     )

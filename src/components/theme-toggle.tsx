@@ -8,9 +8,7 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains('dark'),
-  )
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
 
   function setTheme(next: 'light' | 'dark') {
     const root = document.documentElement
@@ -46,7 +44,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
       aria-pressed={isDark}
     >
-      {isDark ? 'Light theme' : 'Dark theme'}
+      {isDark ? '☀' : '☽'}
     </Button>
   )
 }

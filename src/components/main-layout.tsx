@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
 
 import { AuthToolbar } from '@/components/auth-toolbar'
+import { StudyHelpDialog } from '@/components/study-help-dialog'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -58,6 +59,7 @@ export function MainLayout() {
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <AuthToolbar />
+            <StudyHelpDialog />
             <ThemeToggle />
           </div>
         </div>
