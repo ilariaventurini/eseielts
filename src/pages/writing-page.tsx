@@ -1,7 +1,6 @@
 import { Loader2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
-
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -18,7 +17,7 @@ import {
 import type { GeminiFeedbackPayload } from '@/types/gemini.types'
 import type { WritingPrompt, WritingTask } from '@/types/writing.types'
 import { formatClockSeconds } from '@/utils/format-duration.utils'
-import { countWords } from '@/utils/word-count.utils'
+import { countWords, paragraphWordCounts } from '@/utils/word-count.utils'
 
 type Phase = 'pick' | 'write' | 'done'
 
@@ -37,7 +36,7 @@ export default function WritingPage() {
 
   const wordCount = countWords(answer)
   const minWords = prompt ? WRITING_TASK_MIN_WORDS[prompt.task] : 0
-  const belowMin = phase === 'write' && prompt !== null && wordCount < minWords
+  const paragraphCounts = useMemo(() => paragraphWordCounts(answer), [answer])
 
   useEffect(() => {
     if (phase !== 'write' || !prompt || startRef.current === null) {
@@ -174,9 +173,7 @@ export default function WritingPage() {
                 type="button"
                 variant={task === 1 ? 'default' : 'outline'}
                 className="cursor-pointer"
-                onClick={() => {
-                  setTask(1)
-                }}
+                onClick={() => setTask(1)}
               >
                 Task 1
               </Button>
@@ -184,9 +181,7 @@ export default function WritingPage() {
                 type="button"
                 variant={task === 2 ? 'default' : 'outline'}
                 className="cursor-pointer"
-                onClick={() => {
-                  setTask(2)
-                }}
+                onClick={() => setTask(2)}
               >
                 Task 2
               </Button>
@@ -217,14 +212,7 @@ export default function WritingPage() {
       ) : null}
 
       {phase === 'write' && prompt ? (
-        <div className="flex flex-col gap-4">
-          {belowMin ? (
-            <p className="text-sm text-amber-600 dark:text-amber-400">
-              You are below the suggested minimum; you can still submit, but very short answers are
-              penalised in IELTS Writing.
-            </p>
-          ) : null}
-
+        <div className="flex flex-col gap-y-3">
           <Card>
             <CardHeader>
               <CardTitle>
@@ -245,19 +233,25 @@ export default function WritingPage() {
             </CardHeader>
           </Card>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-            <span>Timer: {formatClockSeconds(elapsedSec)}</span>
-            <span>
-              Words: {String(wordCount)} / suggested min. {String(minWords)}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-x-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-x-2">
+              <span className="min-w-16">⏱ {formatClockSeconds(elapsedSec)}</span>
+              <span className="min-w-16">
+                💬 {String(wordCount)}/{String(minWords)}
+              </span>
+            </div>
+            {paragraphCounts.length > 0 ? (
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                <span className="sr-only">Words per paragraph (blank-line separated): </span>
+                {paragraphCounts.map((n, i) => `p${String(i + 1)}: ${String(n)}`).join(' · ')}
+              </p>
+            ) : null}
           </div>
 
           <Textarea
             id="writing-answer"
             value={answer}
-            onChange={(e) => {
-              persistAnswer(e.target.value)
-            }}
+            onChange={(e) => persistAnswer(e.target.value)}
             rows={16}
             placeholder="Write your response here…"
             aria-label="Your writing response"
