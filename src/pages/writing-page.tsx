@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,10 +9,11 @@ import { ROUTES } from '@/constants/routes.constants'
 import { writingDraftStorageKey } from '@/constants/storage.constants'
 import { TARGET_CEFR_LEVEL, WRITING_TASK_MIN_WORDS } from '@/constants/writing.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
+import { cn } from '@/lib/utils'
 import { requestWritingFeedback } from '@/services/gemini-feedback.service'
 import {
   createWritingAttempt,
-  fetchRandomWritingPrompt,
+  fetchWritingPromptsByTask,
 } from '@/services/writing-firestore.service'
 import type { GeminiFeedbackPayload } from '@/types/gemini.types'
 import type { WritingPrompt, WritingTask } from '@/types/writing.types'
@@ -30,6 +31,9 @@ export default function WritingPage() {
   const [feedback, setFeedback] = useState<GeminiFeedbackPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [availablePrompts, setAvailablePrompts] = useState<WritingPrompt[] | null>(null)
+  const [promptsLoading, setPromptsLoading] = useState(false)
+  const [promptsError, setPromptsError] = useState<string | null>(null)
 
   const startRef = useRef<number | null>(null)
   const firebaseReady = isFirebaseConfigured()
@@ -52,6 +56,36 @@ export default function WritingPage() {
     }
   }, [phase, prompt])
 
+  const loadAvailablePrompts = useCallback(async () => {
+    if (!firebaseReady) {
+      return
+    }
+    setAvailablePrompts(null)
+    setPromptsLoading(true)
+    setPromptsError(null)
+    try {
+      const list = await fetchWritingPromptsByTask(task)
+      setAvailablePrompts(list)
+    } catch (e) {
+      setPromptsError(e instanceof Error ? e.message : 'Failed to load prompts')
+      setAvailablePrompts([])
+    } finally {
+      setPromptsLoading(false)
+    }
+  }, [firebaseReady, task])
+
+  useEffect(() => {
+    if (phase !== 'pick' || !firebaseReady) {
+      return
+    }
+    const id = window.setTimeout(() => {
+      void loadAvailablePrompts()
+    }, 0)
+    return () => {
+      window.clearTimeout(id)
+    }
+  }, [phase, firebaseReady, loadAvailablePrompts])
+
   function persistAnswer(value: string) {
     setAnswer(value)
     if (prompt) {
@@ -59,31 +93,34 @@ export default function WritingPage() {
     }
   }
 
-  async function handleRandomPrompt() {
+  function startWithPrompt(p: WritingPrompt) {
+    setError(null)
+    setFeedback(null)
+    const draftKey = writingDraftStorageKey(p.id)
+    setAnswer(localStorage.getItem(draftKey) ?? '')
+    setPrompt(p)
+    setPhase('write')
+    startRef.current = Date.now()
+    setElapsedSec(0)
+  }
+
+  function handleRandomPrompt() {
     setError(null)
     setFeedback(null)
     if (!firebaseReady) {
       setError('Configure Firebase (VITE_FIREBASE_*).')
       return
     }
-    setLoading(true)
-    try {
-      const p = await fetchRandomWritingPrompt(task)
-      if (!p) {
-        setError('No prompts for this task. Add some in the backoffice.')
-        return
-      }
-      const draftKey = writingDraftStorageKey(p.id)
-      setAnswer(localStorage.getItem(draftKey) ?? '')
-      setPrompt(p)
-      setPhase('write')
-      startRef.current = Date.now()
-      setElapsedSec(0)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load prompt')
-    } finally {
-      setLoading(false)
+    if (!availablePrompts || availablePrompts.length === 0) {
+      setError('No prompts for this task. Add some in the backoffice.')
+      return
     }
+    const idx = Math.floor(Math.random() * availablePrompts.length)
+    const p = availablePrompts[idx]
+    if (!p) {
+      return
+    }
+    startWithPrompt(p)
   }
 
   async function handleSubmit() {
@@ -167,7 +204,9 @@ export default function WritingPage() {
         <Card>
           <CardHeader>
             <CardTitle>Choose a task</CardTitle>
-            <CardDescription>Then draw a random prompt from the backoffice.</CardDescription>
+            <CardDescription>
+              Draw a random prompt, or pick a specific one from the list.
+            </CardDescription>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -187,26 +226,81 @@ export default function WritingPage() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-5">
             <Button
               type="button"
-              className="cursor-pointer inline-flex items-center gap-2"
-              disabled={loading || !firebaseReady}
-              aria-busy={loading}
-              onClick={() => {
-                void handleRandomPrompt()
-              }}
+              className="cursor-pointer inline-flex w-fit items-center gap-2"
+              disabled={
+                !firebaseReady ||
+                promptsLoading ||
+                availablePrompts === null ||
+                availablePrompts.length === 0
+              }
+              onClick={handleRandomPrompt}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                  Loading…
-                </>
-              ) : (
-                'Draw random prompt'
-              )}
+              Draw random prompt
             </Button>
-            {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-medium text-foreground">
+                Or pick a specific exercise
+              </h3>
+              {promptsError ? (
+                <p className="text-sm text-destructive">{promptsError}</p>
+              ) : null}
+              {promptsLoading && availablePrompts === null ? (
+                <div
+                  className="flex items-center gap-2 text-sm text-muted-foreground"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                  Loading exercises…
+                </div>
+              ) : null}
+              {availablePrompts !== null && availablePrompts.length === 0 && !promptsLoading ? (
+                <p className="text-sm text-muted-foreground">
+                  No exercises for Task {String(task)} yet. Add some in the backoffice.
+                </p>
+              ) : null}
+              {availablePrompts !== null && availablePrompts.length > 0 ? (
+                <ul className="flex max-h-[min(28rem,60vh)] flex-col gap-2 overflow-y-auto pr-1">
+                  {availablePrompts.map((p) => {
+                    const label = p.title.trim().length > 0 ? p.title : 'Untitled'
+                    return (
+                      <li key={p.id}>
+                        <button
+                          type="button"
+                          onClick={() => startWithPrompt(p)}
+                          className={cn(
+                            'group flex w-full cursor-pointer items-start gap-3 rounded-md border border-border bg-card p-3 text-left text-sm shadow-sm transition-colors',
+                            'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          )}
+                          aria-label={`Start exercise: ${label}`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-foreground">{label}</p>
+                            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                              {p.body}
+                            </p>
+                          </div>
+                          {p.task === 1 && p.imageUrl ? (
+                            <div className="shrink-0 overflow-hidden rounded border bg-muted">
+                              <img
+                                src={p.imageUrl}
+                                alt=""
+                                className="size-16 object-cover"
+                              />
+                            </div>
+                          ) : null}
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : null}
+            </div>
           </CardContent>
         </Card>
       ) : null}

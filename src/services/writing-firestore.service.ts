@@ -98,7 +98,8 @@ export async function fetchAllWritingPrompts() {
   )
 }
 
-export async function fetchRandomWritingPrompt(task: WritingTask) {
+/** All prompts for a given task, newest first (by `createdAt` when present). */
+export async function fetchWritingPromptsByTask(task: WritingTask) {
   const db = getDb()
   if (!db) {
     throw new Error('Firebase is not configured.')
@@ -107,6 +108,13 @@ export async function fetchRandomWritingPrompt(task: WritingTask) {
   const q = query(col, where('task', '==', task))
   const snap = await getDocs(q)
   const prompts = snap.docs.map((doc) => mapPrompt(doc.id, doc.data()))
+  return [...prompts].sort(
+    (a, b) => writingPromptCreatedMs(b.createdAt) - writingPromptCreatedMs(a.createdAt),
+  )
+}
+
+export async function fetchRandomWritingPrompt(task: WritingTask) {
+  const prompts = await fetchWritingPromptsByTask(task)
   if (prompts.length === 0) {
     return null
   }
