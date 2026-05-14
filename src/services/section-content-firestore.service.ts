@@ -17,10 +17,7 @@ function collectionNameForSkill(skill: SectionContentSkill) {
   if (skill === 'listening') {
     return FIRESTORE_COLLECTIONS.listeningContent
   }
-  if (skill === 'reading') {
-    return FIRESTORE_COLLECTIONS.readingContent
-  }
-  return FIRESTORE_COLLECTIONS.speakingContent
+  return FIRESTORE_COLLECTIONS.readingContent
 }
 
 function mapSectionContent(id: string, data: DocumentData): SectionContentItem {

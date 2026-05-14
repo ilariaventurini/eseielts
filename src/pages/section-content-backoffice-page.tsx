@@ -28,10 +28,7 @@ function sectionHeading(skill: SectionContentSkill) {
   if (skill === 'listening') {
     return 'Listening'
   }
-  if (skill === 'reading') {
-    return 'Reading'
-  }
-  return 'Speaking'
+  return 'Reading'
 }
 
 function formatWhen(item: SectionContentItem) {

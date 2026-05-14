@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { isIeltsSkill } from '@/constants/routes.constants'
 import BackofficePage from '@/pages/backoffice-page'
 import NotFoundPage from '@/pages/not-found-page'
+import SpeakingBackofficePage from '@/pages/speaking-backoffice-page'
 import SectionComingSoonPage from '@/pages/section-coming-soon-page'
 import SectionContentBackofficePage from '@/pages/section-content-backoffice-page'
 import WritingHistoryPage from '@/pages/writing-history-page'
@@ -37,6 +38,9 @@ export function IeltsSkillBackofficePage() {
   }
   if (skill === 'writing') {
     return <BackofficePage />
+  }
+  if (skill === 'speaking') {
+    return <SpeakingBackofficePage />
   }
   return <SectionContentBackofficePage skill={skill} />
 }

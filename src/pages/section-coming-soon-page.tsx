@@ -8,21 +8,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { skillExercisesPath } from '@/constants/routes.constants'
-import type { SectionContentSkill } from '@/types/section-content.types'
+import {
+  skillExercisesPath,
+  type IeltsSkill,
+} from '@/constants/routes.constants'
+
+type ListeningReadingSpeakingSkill = Exclude<IeltsSkill, 'writing'>
 
 interface SectionComingSoonPageProps {
-  readonly skill: SectionContentSkill
+  readonly skill: ListeningReadingSpeakingSkill
   readonly variant: 'exercises' | 'history'
 }
 
-const STATIC_DOC_PATH: Record<SectionContentSkill, string> = {
+const STATIC_DOC_PATH: Record<ListeningReadingSpeakingSkill, string> = {
   listening: '/docs/ielts-listening.md',
   reading: '/docs/ielts-reading.md',
   speaking: '/docs/ielts-speaking.md',
 }
 
-function sectionTitle(skill: SectionContentSkill) {
+function sectionTitle(skill: ListeningReadingSpeakingSkill) {
   if (skill === 'listening') {
     return 'Listening'
   }

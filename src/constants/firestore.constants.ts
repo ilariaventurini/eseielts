@@ -4,4 +4,5 @@ export const FIRESTORE_COLLECTIONS = {
   listeningContent: 'listeningContent',
   readingContent: 'readingContent',
   speakingContent: 'speakingContent',
+  speakingPrompts: 'speakingPrompts',
 } as const

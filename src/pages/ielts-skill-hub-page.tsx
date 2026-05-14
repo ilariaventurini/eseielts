@@ -2,12 +2,6 @@ import { Link, useParams } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   isIeltsSkill,
   skillBackofficePath,
   skillExercisesPath,
@@ -29,11 +23,11 @@ function skillTitle(s: IeltsSkill) {
   return 'Speaking'
 }
 
-function skillIntro(s: IeltsSkill) {
+function skillSubtitle(s: IeltsSkill) {
   if (s === 'writing') {
-    return 'Choose where to go: practice, review past attempts, or manage prompts.'
+    return 'Practice, history, and prompt management for this paper.'
   }
-  return 'Practice and history are coming soon for this paper. You can still open the backoffice to seed content or jump to exercises when they ship.'
+  return 'Exercises and history are coming soon; you can still use the backoffice.'
 }
 
 export default function IeltsSkillHubPage() {
@@ -42,35 +36,24 @@ export default function IeltsSkillHubPage() {
     return <NotFoundPage />
   }
   const skill = raw
-  const title = skillTitle(skill)
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-8 text-left">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{skillIntro(skill)}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{skillTitle(skill)}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{skillSubtitle(skill)}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-1">
-        <Card>
-          <CardHeader>
-            <CardTitle>Where next?</CardTitle>
-            <CardDescription>
-              Open exercises, history, or the backoffice for this paper.
-            </CardDescription>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <Button asChild size="sm" className="cursor-pointer w-fit">
-                <Link to={skillExercisesPath(skill)}>Exercises</Link>
-              </Button>
-              <Button asChild variant="outline" size="sm" className="cursor-pointer w-fit">
-                <Link to={skillHistoryPath(skill)}>History</Link>
-              </Button>
-              <Button asChild variant="secondary" size="sm" className="cursor-pointer w-fit">
-                <Link to={skillBackofficePath(skill)}>Backoffice</Link>
-              </Button>
-            </div>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+        <Button asChild className="w-full cursor-pointer">
+          <Link to={skillExercisesPath(skill)}>Exercises</Link>
+        </Button>
+        <Button asChild className="w-full cursor-pointer">
+          <Link to={skillHistoryPath(skill)}>History</Link>
+        </Button>
+        <Button asChild className="w-full cursor-pointer">
+          <Link to={skillBackofficePath(skill)}>Backoffice</Link>
+        </Button>
       </div>
     </div>
   )
