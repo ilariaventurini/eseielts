@@ -11,6 +11,7 @@ export const ROUTE_SUB_SEGMENTS = {
   exercises: 'exercises',
   history: 'history',
   backoffice: 'backoffice',
+  promptsLibrary: 'prompts-library',
 } as const
 
 export function isIeltsSkill(value: string | undefined): value is IeltsSkill {
@@ -35,6 +36,10 @@ export function skillHistoryPath(skill: IeltsSkill) {
 
 export function skillBackofficePath(skill: IeltsSkill) {
   return `/${skill}/${ROUTE_SUB_SEGMENTS.backoffice}`
+}
+
+export function skillPromptsLibraryPath(skill: IeltsSkill) {
+  return `/${skill}/${ROUTE_SUB_SEGMENTS.promptsLibrary}`
 }
 
 /** Full paths for `<Link>` / `navigate` (leading slash). */

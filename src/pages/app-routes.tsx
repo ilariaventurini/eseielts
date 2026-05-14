@@ -9,6 +9,7 @@ import {
   IeltsSkillBackofficePage,
   IeltsSkillExercisesPage,
   IeltsSkillHistoryPage,
+  IeltsSkillPromptsLibraryPage,
 } from '@/pages/ielts-skill-nested-pages'
 import NotFoundPage from '@/pages/not-found-page'
 import SignInPage from '@/pages/sign-in-page'
@@ -29,6 +30,7 @@ export function AppRoutes() {
             <Route path="exercises" element={<IeltsSkillExercisesPage />} />
             <Route path="history" element={<IeltsSkillHistoryPage />} />
             <Route path="backoffice" element={<IeltsSkillBackofficePage />} />
+            <Route path="prompts-library" element={<IeltsSkillPromptsLibraryPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>

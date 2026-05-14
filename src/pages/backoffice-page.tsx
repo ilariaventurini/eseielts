@@ -1,5 +1,6 @@
-import { Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Loader2, Plus, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -12,18 +13,15 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { skillPromptsLibraryPath } from '@/constants/routes.constants'
 import { useAuth } from '@/hooks/use-auth'
 import {
   isFirebaseConfigured,
   isFirebaseStorageConfigured,
 } from '@/lib/firebase'
-import { cn } from '@/lib/utils'
-import {
-  createWritingPrompts,
-  fetchAllWritingPrompts,
-} from '@/services/writing-firestore.service'
+import { createWritingPrompts } from '@/services/writing-firestore.service'
 import { uploadTask1PromptImage } from '@/services/writing-storage.service'
-import type { WritingPrompt, WritingTask } from '@/types/writing.types'
+import type { WritingTask } from '@/types/writing.types'
 
 interface PromptRow {
   readonly id: string
@@ -54,47 +52,9 @@ export default function BackofficePage() {
   )
   const [message, setMessage] = useState<string | null>(null)
   const [uploadingRowId, setUploadingRowId] = useState<string | null>(null)
-  const [promptLibrary, setPromptLibrary] = useState<WritingPrompt[] | null>(
-    null,
-  )
-  const [libraryLoading, setLibraryLoading] = useState(false)
-  const [libraryError, setLibraryError] = useState<string | null>(null)
-  const [libraryFilter, setLibraryFilter] = useState<'all' | WritingTask>(
-    'all',
-  )
 
   const firebaseReady = isFirebaseConfigured()
   const storageReady = isFirebaseStorageConfigured()
-
-  const loadPromptLibrary = useCallback(async () => {
-    if (!firebaseReady) {
-      return
-    }
-    setLibraryLoading(true)
-    setLibraryError(null)
-    try {
-      const list = await fetchAllWritingPrompts()
-      setPromptLibrary(list)
-    } catch (e) {
-      setLibraryError(
-        e instanceof Error ? e.message : 'Failed to load prompts',
-      )
-    } finally {
-      setLibraryLoading(false)
-    }
-  }, [firebaseReady])
-
-  useEffect(() => {
-    if (!firebaseReady) {
-      return
-    }
-    const id = window.setTimeout(() => {
-      void loadPromptLibrary()
-    }, 0)
-    return () => {
-      window.clearTimeout(id)
-    }
-  }, [firebaseReady, loadPromptLibrary])
 
   function updateRow(id: string, patch: Partial<Omit<PromptRow, 'id'>>) {
     setRows((prev) =>
@@ -170,19 +130,11 @@ export default function BackofficePage() {
       setStatus('success')
       setMessage(`Saved ${String(payload.length)} prompt(s).`)
       setRows([newEmptyRow()])
-      void loadPromptLibrary()
     } catch (e) {
       setStatus('error')
       setMessage(e instanceof Error ? e.message : 'Unknown error')
     }
   }
-
-  const filteredLibrary =
-    promptLibrary === null
-      ? []
-      : promptLibrary.filter(
-          (p) => libraryFilter === 'all' || p.task === libraryFilter,
-        )
 
   return (
     <div className="flex flex-col gap-6 text-left">
@@ -191,7 +143,14 @@ export default function BackofficePage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Add one or more prompts: optional title, required body. For Task 1,
           upload an image to Firebase Storage or paste an HTTPS image URL. All
-          rows share the selected task.
+          rows share the selected task. Browse saved prompts in{' '}
+          <Link
+            to={skillPromptsLibraryPath('writing')}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Prompts library
+          </Link>
+          .
         </p>
       </div>
 
@@ -401,151 +360,6 @@ export default function BackofficePage() {
           ) : null}
         </CardContent>
       </Card>
-
-      {firebaseReady ? (
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle>Prompts library</CardTitle>
-                <CardDescription>
-                  All prompts stored in Firestore. Filter by task or refresh
-                  after saving new ones.
-                </CardDescription>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer inline-flex shrink-0 items-center gap-2"
-                disabled={libraryLoading}
-                aria-busy={libraryLoading}
-                onClick={() => {
-                  void loadPromptLibrary()
-                }}
-              >
-                {libraryLoading ? (
-                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                ) : (
-                  <RefreshCw className="size-4 shrink-0" aria-hidden />
-                )}
-                Refresh
-              </Button>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {(
-                [
-                  { key: 'all' as const, label: 'All tasks' },
-                  { key: 1 as const, label: 'Task 1' },
-                  { key: 2 as const, label: 'Task 2' },
-                ] as const
-              ).map(({ key, label }) => (
-                <Button
-                  key={String(key)}
-                  type="button"
-                  size="sm"
-                  variant={libraryFilter === key ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setLibraryFilter(key)
-                  }}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {libraryError ? (
-              <p className="text-sm text-destructive">{libraryError}</p>
-            ) : null}
-            {libraryLoading && promptLibrary === null ? (
-              <div
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-                role="status"
-                aria-live="polite"
-              >
-                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                Loading prompts…
-              </div>
-            ) : null}
-            {promptLibrary !== null && !libraryLoading && promptLibrary.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No prompts yet. Save some using the form above.
-              </p>
-            ) : null}
-            {promptLibrary !== null && promptLibrary.length > 0 ? (
-              <p className="text-xs text-muted-foreground">
-                Showing {String(filteredLibrary.length)} of{' '}
-                {String(promptLibrary.length)} prompt(s).
-              </p>
-            ) : null}
-            {promptLibrary !== null &&
-            promptLibrary.length > 0 &&
-            filteredLibrary.length === 0 &&
-            libraryFilter !== 'all' ? (
-              <p className="text-sm text-muted-foreground">
-                No prompts for this filter.
-              </p>
-            ) : null}
-            <ul className="flex max-h-[min(32rem,70vh)] flex-col gap-3 overflow-y-auto pr-1">
-              {filteredLibrary.map((p) => (
-                  <li
-                    key={p.id}
-                    className="rounded-md border border-border bg-card p-3 text-sm shadow-sm"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={cn(
-                              'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
-                              p.task === 1
-                                ? 'bg-primary/15 text-primary'
-                                : 'bg-muted text-muted-foreground',
-                            )}
-                          >
-                            Task {String(p.task)}
-                          </span>
-                          {p.title.trim().length > 0 ? (
-                            <span className="font-medium text-foreground">
-                              {p.title}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">
-                              Untitled
-                            </span>
-                          )}
-                        </div>
-                        <p className="break-all font-mono text-[11px] text-muted-foreground">
-                          id: {p.id}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {p.createdAt !== null &&
-                          typeof p.createdAt.toDate === 'function'
-                            ? p.createdAt.toDate().toLocaleString()
-                            : 'Date unknown'}
-                        </p>
-                      </div>
-                      {p.task === 1 && p.imageUrl ? (
-                        <div className="shrink-0 overflow-hidden rounded border bg-muted">
-                          <img
-                            src={p.imageUrl}
-                            alt=""
-                            className="size-20 object-cover"
-                          />
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap text-muted-foreground">
-                      {p.body}
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   )
 }

@@ -44,3 +44,5 @@ export function IeltsSkillBackofficePage() {
   }
   return <SectionContentBackofficePage skill={skill} />
 }
+
+export { IeltsSkillPromptsLibraryPage } from '@/pages/ielts-skill-prompts-library-page'

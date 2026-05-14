@@ -52,7 +52,8 @@ export default function HomePage() {
           Choose a paper
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Each skill card opens an overview with exercises, history, and backoffice.
+          Each skill card opens an overview with exercises, history, backoffice, and
+          prompts library (where available).
           Writing is fully interactive today; the other papers ship practice over time while
           you can still seed content and read the static guides.
         </p>
@@ -69,7 +70,7 @@ export default function HomePage() {
               'motion-safe:hover:-translate-y-px motion-safe:active:translate-y-0',
               'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             )}
-            aria-label={`Open ${skillTitle(skill)} — exercises, history, and backoffice`}
+            aria-label={`Open ${skillTitle(skill)} — exercises, history, backoffice, and prompts library`}
           >
             <Card
               className={cn(

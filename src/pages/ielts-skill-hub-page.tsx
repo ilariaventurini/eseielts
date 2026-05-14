@@ -6,6 +6,7 @@ import {
   skillBackofficePath,
   skillExercisesPath,
   skillHistoryPath,
+  skillPromptsLibraryPath,
   type IeltsSkill,
 } from '@/constants/routes.constants'
 import NotFoundPage from '@/pages/not-found-page'
@@ -25,12 +26,12 @@ function skillTitle(s: IeltsSkill) {
 
 function skillSubtitle(s: IeltsSkill) {
   if (s === 'writing') {
-    return 'Practice, history, and prompt management for this paper.'
+    return 'Practice, history, backoffice, and prompts library for this paper.'
   }
   if (s === 'listening' || s === 'reading') {
     return 'This paper is not available yet; choose Writing or Speaking from the header or home.'
   }
-  return 'Exercises and history are coming soon; you can still use the backoffice.'
+  return 'Exercises and history are coming soon; backoffice and prompts library are available.'
 }
 
 function isHubActionsDisabled(skill: IeltsSkill) {
@@ -60,7 +61,7 @@ export default function IeltsSkillHubPage() {
           >
             Coming soon
           </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Button type="button" disabled className="w-full cursor-not-allowed">
               Exercises
             </Button>
@@ -70,10 +71,13 @@ export default function IeltsSkillHubPage() {
             <Button type="button" disabled className="w-full cursor-not-allowed">
               Backoffice
             </Button>
+            <Button type="button" disabled className="w-full cursor-not-allowed">
+              Prompts library
+            </Button>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Button asChild className="w-full cursor-pointer">
             <Link to={skillExercisesPath(skill)}>Exercises</Link>
           </Button>
@@ -82,6 +86,9 @@ export default function IeltsSkillHubPage() {
           </Button>
           <Button asChild className="w-full cursor-pointer">
             <Link to={skillBackofficePath(skill)}>Backoffice</Link>
+          </Button>
+          <Button asChild className="w-full cursor-pointer">
+            <Link to={skillPromptsLibraryPath(skill)}>Prompts library</Link>
           </Button>
         </div>
       )}
