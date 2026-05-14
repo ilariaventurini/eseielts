@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  IELTS_LISTENING_TAB_MARKDOWN,
+  IELTS_READING_TAB_MARKDOWN,
+  IELTS_SPEAKING_TAB_MARKDOWN,
   IELTS_WRITING_STUDY_TIPS_TAB_MARKDOWN,
   IELTS_WRITING_TAB_MARKDOWN,
 } from '@/constants/writing-help.markdown'
@@ -81,7 +84,10 @@ export function HelpMarkdownDialog({
           className="text-foreground flex min-h-0 min-w-0 flex-1 flex-col"
         >
           <div className="flex shrink-0 items-center border-b px-4 py-2.5 pr-14 sm:px-6">
-            <TabsList aria-label="Help sections" className="min-w-0 flex-1 sm:flex-initial sm:w-auto">
+            <TabsList
+              aria-label="Help sections"
+              className="min-w-0 flex-1 sm:flex-initial sm:w-auto"
+            >
               {tabs.map((tab) => (
                 <TabsTrigger key={tab.value} value={tab.value}>
                   {tab.label}
@@ -113,9 +119,24 @@ const IELTS_WRITING_HELP_TABS: readonly HelpMarkdownTab[] = [
     markdown: IELTS_WRITING_STUDY_TIPS_TAB_MARKDOWN,
   },
   {
+    value: 'ielts-listening',
+    label: '1. IELTS Listening',
+    markdown: IELTS_LISTENING_TAB_MARKDOWN,
+  },
+  {
+    value: 'ielts-reading',
+    label: '2. IELTS Reading',
+    markdown: IELTS_READING_TAB_MARKDOWN,
+  },
+  {
     value: 'ielts-writing',
-    label: 'IELTS Writing',
+    label: '3. IELTS Writing',
     markdown: IELTS_WRITING_TAB_MARKDOWN,
+  },
+  {
+    value: 'ielts-speaking',
+    label: '4. IELTS Speaking',
+    markdown: IELTS_SPEAKING_TAB_MARKDOWN,
   },
 ]
 
