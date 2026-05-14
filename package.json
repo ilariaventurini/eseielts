@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:firestore-rules": "npx --yes firebase-tools deploy --only firestore:rules"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
