@@ -2,13 +2,6 @@ import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   skillExercisesPath,
   type IeltsSkill,
 } from '@/constants/routes.constants'
@@ -57,14 +50,12 @@ export default function SectionComingSoonPage({
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Study notes</CardTitle>
-          <CardDescription>
-            Open the markdown reference in a new tab (hosted as a static file).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-sm font-medium text-foreground">Study notes</h2>
+        <p className="text-sm text-muted-foreground">
+          Open the markdown reference in a new tab (hosted as a static file).
+        </p>
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm" className="cursor-pointer">
             <a href={STATIC_DOC_PATH[skill]} target="_blank" rel="noreferrer">
               Open {label.toLowerCase()} guide
@@ -73,8 +64,8 @@ export default function SectionComingSoonPage({
           <Button asChild variant="secondary" size="sm" className="cursor-pointer">
             <Link to={skillExercisesPath('writing')}>Go to writing practice</Link>
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

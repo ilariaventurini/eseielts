@@ -3,13 +3,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { skillBackofficePath } from '@/constants/routes.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { cn } from '@/lib/utils'
@@ -84,147 +77,145 @@ export default function WritingPromptsLibraryPage() {
       ) : null}
 
       {firebaseReady ? (
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle>Writing prompts</CardTitle>
-                <CardDescription>
-                  Task 1 and Task 2 entries with optional Task 1 preview image.
-                </CardDescription>
-              </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold tracking-tight text-foreground">
+                Writing prompts
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Task 1 and Task 2 entries with optional Task 1 preview image.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="cursor-pointer inline-flex shrink-0 items-center gap-2"
+              disabled={libraryLoading}
+              aria-busy={libraryLoading}
+              onClick={() => {
+                void loadPromptLibrary()
+              }}
+            >
+              {libraryLoading ? (
+                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+              ) : (
+                <RefreshCw className="size-4 shrink-0" aria-hidden />
+              )}
+              Refresh
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                { key: 'all' as const, label: 'All tasks' },
+                { key: 1 as const, label: 'Task 1' },
+                { key: 2 as const, label: 'Task 2' },
+              ] as const
+            ).map(({ key, label }) => (
               <Button
+                key={String(key)}
                 type="button"
-                variant="outline"
                 size="sm"
-                className="cursor-pointer inline-flex shrink-0 items-center gap-2"
-                disabled={libraryLoading}
-                aria-busy={libraryLoading}
+                variant={libraryFilter === key ? 'default' : 'outline'}
+                className="cursor-pointer"
                 onClick={() => {
-                  void loadPromptLibrary()
+                  setLibraryFilter(key)
                 }}
               >
-                {libraryLoading ? (
-                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                ) : (
-                  <RefreshCw className="size-4 shrink-0" aria-hidden />
-                )}
-                Refresh
+                {label}
               </Button>
+            ))}
+          </div>
+          {libraryError ? (
+            <p className="text-sm text-destructive">{libraryError}</p>
+          ) : null}
+          {libraryLoading && promptLibrary === null ? (
+            <div
+              className="flex items-center gap-2 text-sm text-muted-foreground"
+              role="status"
+              aria-live="polite"
+            >
+              <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+              Loading prompts…
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {(
-                [
-                  { key: 'all' as const, label: 'All tasks' },
-                  { key: 1 as const, label: 'Task 1' },
-                  { key: 2 as const, label: 'Task 2' },
-                ] as const
-              ).map(({ key, label }) => (
-                <Button
-                  key={String(key)}
-                  type="button"
-                  size="sm"
-                  variant={libraryFilter === key ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setLibraryFilter(key)
-                  }}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {libraryError ? (
-              <p className="text-sm text-destructive">{libraryError}</p>
-            ) : null}
-            {libraryLoading && promptLibrary === null ? (
-              <div
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-                role="status"
-                aria-live="polite"
+          ) : null}
+          {promptLibrary !== null && !libraryLoading && promptLibrary.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No prompts yet. Add some in{' '}
+              <Link
+                to={skillBackofficePath('writing')}
+                className="font-medium text-primary underline-offset-4 hover:underline"
               >
-                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                Loading prompts…
-              </div>
-            ) : null}
-            {promptLibrary !== null && !libraryLoading && promptLibrary.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No prompts yet. Add some in{' '}
-                <Link
-                  to={skillBackofficePath('writing')}
-                  className="font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Backoffice
-                </Link>
-                .
-              </p>
-            ) : null}
-            {promptLibrary !== null && promptLibrary.length > 0 ? (
-              <p className="text-xs text-muted-foreground">
-                Showing {String(filteredLibrary.length)} of{' '}
-                {String(promptLibrary.length)} prompt(s).
-              </p>
-            ) : null}
-            {promptLibrary !== null &&
-            promptLibrary.length > 0 &&
-            filteredLibrary.length === 0 &&
-            libraryFilter !== 'all' ? (
-              <p className="text-sm text-muted-foreground">No prompts for this filter.</p>
-            ) : null}
-            <ul className="flex max-h-[min(32rem,70vh)] flex-col gap-3 overflow-y-auto pr-1">
-              {filteredLibrary.map((p) => (
-                <li
-                  key={p.id}
-                  className="rounded-md border border-border bg-card p-3 text-sm shadow-sm"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={cn(
-                            'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
-                            p.task === 1
-                              ? 'bg-primary/15 text-primary'
-                              : 'bg-muted text-muted-foreground',
-                          )}
-                        >
-                          Task {String(p.task)}
-                        </span>
-                        {p.title.trim().length > 0 ? (
-                          <span className="font-medium text-foreground">{p.title}</span>
-                        ) : (
-                          <span className="text-muted-foreground">Untitled</span>
+                Backoffice
+              </Link>
+              .
+            </p>
+          ) : null}
+          {promptLibrary !== null && promptLibrary.length > 0 ? (
+            <p className="text-xs text-muted-foreground">
+              Showing {String(filteredLibrary.length)} of{' '}
+              {String(promptLibrary.length)} prompt(s).
+            </p>
+          ) : null}
+          {promptLibrary !== null &&
+          promptLibrary.length > 0 &&
+          filteredLibrary.length === 0 &&
+          libraryFilter !== 'all' ? (
+            <p className="text-sm text-muted-foreground">No prompts for this filter.</p>
+          ) : null}
+          <ul className="flex max-h-[min(32rem,70vh)] flex-col gap-3 overflow-y-auto pr-1">
+            {filteredLibrary.map((p) => (
+              <li
+                key={p.id}
+                className="rounded-md border border-border bg-card p-3 text-sm shadow-sm"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
+                          p.task === 1
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-muted text-muted-foreground',
                         )}
-                      </div>
-                      <p className="break-all font-mono text-[11px] text-muted-foreground">
-                        id: {p.id}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {p.createdAt !== null && typeof p.createdAt.toDate === 'function'
-                          ? p.createdAt.toDate().toLocaleString()
-                          : 'Date unknown'}
-                      </p>
+                      >
+                        Task {String(p.task)}
+                      </span>
+                      {p.title.trim().length > 0 ? (
+                        <span className="font-medium text-foreground">{p.title}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Untitled</span>
+                      )}
                     </div>
-                    {p.task === 1 && p.imageUrl ? (
-                      <div className="shrink-0 overflow-hidden rounded border bg-muted">
-                        <img
-                          src={p.imageUrl}
-                          alt=""
-                          className="size-20 object-cover"
-                        />
-                      </div>
-                    ) : null}
+                    <p className="break-all font-mono text-[11px] text-muted-foreground">
+                      id: {p.id}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.createdAt !== null && typeof p.createdAt.toDate === 'function'
+                        ? p.createdAt.toDate().toLocaleString()
+                        : 'Date unknown'}
+                    </p>
                   </div>
-                  <div className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap text-muted-foreground">
-                    {p.body}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+                  {p.task === 1 && p.imageUrl ? (
+                    <div className="shrink-0 overflow-hidden rounded border bg-muted">
+                      <img
+                        src={p.imageUrl}
+                        alt=""
+                        className="size-20 object-cover"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+                <div className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap text-muted-foreground">
+                  {p.body}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
     </div>
   )

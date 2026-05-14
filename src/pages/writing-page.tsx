@@ -201,108 +201,100 @@ export default function WritingPage() {
       ) : null}
 
       {phase === 'pick' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Choose a task</CardTitle>
-            <CardDescription>
-              Draw a random prompt, or pick a specific one from the list.
-            </CardDescription>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant={task === 1 ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => setTask(1)}
-              >
-                Task 1
-              </Button>
-              <Button
-                type="button"
-                variant={task === 2 ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => setTask(2)}
-              >
-                Task 2
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              className="cursor-pointer inline-flex w-fit items-center gap-2"
-              disabled={
-                !firebaseReady ||
-                promptsLoading ||
-                availablePrompts === null ||
-                availablePrompts.length === 0
-              }
-              onClick={handleRandomPrompt}
+              variant={task === 1 ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setTask(1)}
             >
-              Draw random prompt
+              Task 1
             </Button>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <Button
+              type="button"
+              variant={task === 2 ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setTask(2)}
+            >
+              Task 2
+            </Button>
+          </div>
+          <Button
+            type="button"
+            className="cursor-pointer inline-flex w-fit items-center gap-2"
+            disabled={
+              !firebaseReady ||
+              promptsLoading ||
+              availablePrompts === null ||
+              availablePrompts.length === 0
+            }
+            onClick={handleRandomPrompt}
+          >
+            Draw random prompt
+          </Button>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-medium text-foreground">
-                Or pick a specific exercise
-              </h3>
-              {promptsError ? (
-                <p className="text-sm text-destructive">{promptsError}</p>
-              ) : null}
-              {promptsLoading && availablePrompts === null ? (
-                <div
-                  className="flex items-center gap-2 text-sm text-muted-foreground"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                  Loading exercises…
-                </div>
-              ) : null}
-              {availablePrompts !== null && availablePrompts.length === 0 && !promptsLoading ? (
-                <p className="text-sm text-muted-foreground">
-                  No exercises for Task {String(task)} yet. Add some in the backoffice.
-                </p>
-              ) : null}
-              {availablePrompts !== null && availablePrompts.length > 0 ? (
-                <ul className="flex max-h-[min(28rem,60vh)] flex-col gap-2 overflow-y-auto pr-1">
-                  {availablePrompts.map((p) => {
-                    const label = p.title.trim().length > 0 ? p.title : 'Untitled'
-                    return (
-                      <li key={p.id}>
-                        <button
-                          type="button"
-                          onClick={() => startWithPrompt(p)}
-                          className={cn(
-                            'group flex w-full cursor-pointer items-start gap-3 rounded-md border border-border bg-card p-3 text-left text-sm shadow-sm transition-colors',
-                            'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                          )}
-                          aria-label={`Start exercise: ${label}`}
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium text-foreground">{label}</p>
-                            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                              {p.body}
-                            </p>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-sm font-medium text-foreground">
+              Or pick a specific exercise
+            </h2>
+            {promptsError ? (
+              <p className="text-sm text-destructive">{promptsError}</p>
+            ) : null}
+            {promptsLoading && availablePrompts === null ? (
+              <div
+                className="flex items-center gap-2 text-sm text-muted-foreground"
+                role="status"
+                aria-live="polite"
+              >
+                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                Loading exercises…
+              </div>
+            ) : null}
+            {availablePrompts !== null && availablePrompts.length === 0 && !promptsLoading ? (
+              <p className="text-sm text-muted-foreground">
+                No exercises for Task {String(task)} yet. Add some in the backoffice.
+              </p>
+            ) : null}
+            {availablePrompts !== null && availablePrompts.length > 0 ? (
+              <ul className="flex max-h-[min(28rem,60vh)] flex-col gap-2 overflow-y-auto pr-1">
+                {availablePrompts.map((p) => {
+                  const label = p.title.trim().length > 0 ? p.title : 'Untitled'
+                  return (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        onClick={() => startWithPrompt(p)}
+                        className={cn(
+                          'group flex w-full cursor-pointer items-start gap-3 rounded-md border border-border bg-card p-3 text-left text-sm shadow-sm transition-colors',
+                          'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        )}
+                        aria-label={`Start exercise: ${label}`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-foreground">{label}</p>
+                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                            {p.body}
+                          </p>
+                        </div>
+                        {p.task === 1 && p.imageUrl ? (
+                          <div className="shrink-0 overflow-hidden rounded border bg-muted">
+                            <img
+                              src={p.imageUrl}
+                              alt=""
+                              className="size-16 object-cover"
+                            />
                           </div>
-                          {p.task === 1 && p.imageUrl ? (
-                            <div className="shrink-0 overflow-hidden rounded border bg-muted">
-                              <img
-                                src={p.imageUrl}
-                                alt=""
-                                className="size-16 object-cover"
-                              />
-                            </div>
-                          ) : null}
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : null}
-            </div>
-          </CardContent>
-        </Card>
+                        ) : null}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : null}
+          </div>
+        </div>
       ) : null}
 
       {phase === 'write' && prompt ? (
