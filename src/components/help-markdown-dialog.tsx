@@ -112,7 +112,7 @@ export function HelpMarkdownDialog({
   )
 }
 
-const IELTS_WRITING_HELP_TABS: readonly HelpMarkdownTab[] = [
+const IELTS_HELP_TABS: readonly HelpMarkdownTab[] = [
   {
     value: 'study-tips',
     label: 'Study tips',
@@ -140,14 +140,14 @@ const IELTS_WRITING_HELP_TABS: readonly HelpMarkdownTab[] = [
   },
 ]
 
-export function WritingHelpDialog() {
+export function HelpDialog() {
   return (
     <HelpMarkdownDialog
-      triggerAriaLabel="Open IELTS Writing help (study tips and task reference)"
-      tabs={IELTS_WRITING_HELP_TABS}
+      triggerAriaLabel="Open IELTS help (study tips and section guides)"
+      tabs={IELTS_HELP_TABS}
       defaultTab="study-tips"
-      dialogAccessibleName="IELTS Writing help"
-      dialogDescription="IELTS Writing help: study tips reference and IELTS Writing guide from documentation."
+      dialogAccessibleName="IELTS help"
+      dialogDescription="IELTS help: study tips and guides for Listening, Reading, Writing, and Speaking."
     />
   )
 }

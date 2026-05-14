@@ -2,12 +2,30 @@ import type { ReactNode } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
 
 import { AuthToolbar } from '@/components/auth-toolbar'
-import { WritingHelpDialog } from '@/components/help-markdown-dialog'
+import { HelpDialog } from '@/components/help-markdown-dialog'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { ROUTES } from '@/constants/routes.constants'
+import {
+  IELTS_SKILLS,
+  ROUTES,
+  skillRootPath,
+  type IeltsSkill,
+} from '@/constants/routes.constants'
 import { cn } from '@/lib/utils'
+
+function skillNavLabel(skill: IeltsSkill) {
+  if (skill === 'listening') {
+    return 'Listening'
+  }
+  if (skill === 'reading') {
+    return 'Reading'
+  }
+  if (skill === 'writing') {
+    return 'Writing'
+  }
+  return 'Speaking'
+}
 
 function ShellNavLink({
   to,
@@ -46,15 +64,15 @@ export function MainLayout() {
             <Button asChild variant="ghost" size="sm" className="cursor-pointer font-semibold">
               <Link to={ROUTES.home}>⌂</Link>
             </Button>
-            <ShellNavLink to={ROUTES.backoffice}>Backoffice</ShellNavLink>
-            <ShellNavLink to={ROUTES.writing} end>
-              Writing
-            </ShellNavLink>
-            <ShellNavLink to={ROUTES.writingHistory}>History</ShellNavLink>
+            {IELTS_SKILLS.map((skill) => (
+              <ShellNavLink key={skill} to={skillRootPath(skill)} end={false}>
+                {skillNavLabel(skill)}
+              </ShellNavLink>
+            ))}
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <AuthToolbar />
-            <WritingHelpDialog />
+            <HelpDialog />
             <ThemeToggle />
           </div>
         </div>
