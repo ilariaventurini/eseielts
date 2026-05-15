@@ -86,3 +86,25 @@
     @apply min-h-dvh;
   }
 }
+
+@keyframes speaking-timer-running-hint {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes speaking-timer-running-hint-gray {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}

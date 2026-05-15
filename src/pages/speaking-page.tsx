@@ -6,8 +6,8 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Textarea } from '@/components/ui/textarea'
 import { ROUTES } from '@/constants/routes.constants'
 import {
-  SPEAKING_EXTENDED_GREEN_AT_ELAPSED_SEC,
-  SPEAKING_FIRST_MINUTE_ELAPSED_SEC,
+  SPEAKING_TASK2_SESSION_TIMER_SEC,
+  SPEAKING_TASK2_WARM_UP_TIMER_SEC,
 } from '@/constants/speaking.constants'
 import { speakingNotesStorageKey } from '@/constants/storage.constants'
 import { useAuth } from '@/hooks/use-auth'
@@ -34,9 +34,7 @@ export default function SpeakingPage() {
   const [submitLoading, setSubmitLoading] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
-  const [submittedExtendedMs, setSubmittedExtendedMs] = useState<number | null>(
-    null,
-  )
+  const [submittedExtendedMs, setSubmittedExtendedMs] = useState<number | null>(null)
 
   const { user } = useAuth()
 
@@ -52,17 +50,17 @@ export default function SpeakingPage() {
   const extendedRunStartRef = useRef<number | null>(null)
 
   const firebaseReady = isFirebaseConfigured()
-  const firstMinutePassed = elapsedSec >= SPEAKING_FIRST_MINUTE_ELAPSED_SEC
-  const extendedGreenReached =
-    extendedElapsedSec >= SPEAKING_EXTENDED_GREEN_AT_ELAPSED_SEC
+  const firstMinutePassed = elapsedSec >= SPEAKING_TASK2_WARM_UP_TIMER_SEC
+  const extendedGreenReached = extendedElapsedSec >= SPEAKING_TASK2_SESSION_TIMER_SEC
+  const warmUpRunning = !timerPaused
+  const sessionRunning = extendedHasStarted && !extendedTimerPaused
 
   useEffect(() => {
     if (phase !== 'practice' || !prompt || runStartRef.current === null) {
       return
     }
     const tick = () => {
-      const runMs =
-        runStartRef.current !== null ? Date.now() - runStartRef.current : 0
+      const runMs = runStartRef.current !== null ? Date.now() - runStartRef.current : 0
       setElapsedSec(Math.floor((accumulatedMsRef.current + runMs) / 1000))
     }
     tick()
@@ -84,12 +82,8 @@ export default function SpeakingPage() {
     }
     const tick = () => {
       const runMs =
-        extendedRunStartRef.current !== null
-          ? Date.now() - extendedRunStartRef.current
-          : 0
-      setExtendedElapsedSec(
-        Math.floor((extendedAccumulatedMsRef.current + runMs) / 1000),
-      )
+        extendedRunStartRef.current !== null ? Date.now() - extendedRunStartRef.current : 0
+      setExtendedElapsedSec(Math.floor((extendedAccumulatedMsRef.current + runMs) / 1000))
     }
     tick()
     const id = window.setInterval(tick, 1000)
@@ -212,9 +206,7 @@ export default function SpeakingPage() {
 
   function getExtendedElapsedMsAtNow() {
     const runMs =
-      extendedRunStartRef.current !== null
-        ? Date.now() - extendedRunStartRef.current
-        : 0
+      extendedRunStartRef.current !== null ? Date.now() - extendedRunStartRef.current : 0
     return extendedAccumulatedMsRef.current + runMs
   }
 
@@ -238,8 +230,7 @@ export default function SpeakingPage() {
       await createSpeakingAttempt({
         promptId: prompt.id,
         task: prompt.task,
-        promptTitle:
-          prompt.title.length > 0 ? prompt.title : `Task ${String(prompt.task)}`,
+        promptTitle: prompt.title.length > 0 ? prompt.title : `Task ${String(prompt.task)}`,
         promptBody: prompt.body,
         notes,
         extendedTimerMs,
@@ -248,12 +239,11 @@ export default function SpeakingPage() {
       setSaveSuccess(true)
     } catch (e) {
       const raw = e instanceof Error ? e.message : 'Failed to save'
-      const isPermission =
-        /permission|insufficient permissions|missing or insufficient/i.test(raw)
+      const isPermission = /permission|insufficient permissions|missing or insufficient/i.test(raw)
       setSaveError(
         isPermission
           ? 'Firestore blocked this save. Deploy the latest rules (including speakingAttempts) with `firebase deploy --only firestore:rules`, and confirm you are signed in with the same Firebase project as this app.'
-          : raw,
+          : raw
       )
     } finally {
       setSubmitLoading(false)
@@ -275,14 +265,7 @@ export default function SpeakingPage() {
   return (
     <div className="flex flex-col gap-6 text-left">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Speaking</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Choose a task and prompt: the warm-up timer starts automatically (pause anytime). Use
-            the session timer for your timed practice; it turns green after 2.5 minutes. Notes are
-            optional.
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">Speaking</h1>
         <Button asChild variant="outline" size="sm" className="cursor-pointer">
           <Link to={ROUTES.speakingHistory}>View history</Link>
         </Button>
@@ -326,12 +309,8 @@ export default function SpeakingPage() {
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-foreground">
-              Or pick a specific exercise
-            </h2>
-            {promptsError ? (
-              <p className="text-sm text-destructive">{promptsError}</p>
-            ) : null}
+            <h2 className="text-sm font-medium text-foreground">Or pick a specific exercise</h2>
+            {promptsError ? <p className="text-sm text-destructive">{promptsError}</p> : null}
             {promptsLoading && availablePrompts === null ? (
               <div
                 className="flex items-center gap-2 text-sm text-muted-foreground"
@@ -358,7 +337,7 @@ export default function SpeakingPage() {
                         onClick={() => startWithPrompt(p)}
                         className={cn(
                           'group flex w-full cursor-pointer items-start gap-3 rounded-md border border-border bg-card p-3 text-left text-sm shadow-sm transition-colors',
-                          'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                         )}
                         aria-label={`Start exercise: ${label}`}
                       >
@@ -389,128 +368,108 @@ export default function SpeakingPage() {
             </CardHeader>
           </Card>
 
-          <div
-            className="rounded-md border border-border bg-card p-4 text-sm"
-            aria-label={[
-              timerPaused ? 'Warm-up timer, paused' : 'Warm-up timer, running',
-              firstMinutePassed ? ', more than one minute elapsed' : '',
-            ].join('')}
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex flex-row gap-3">
+            <button
+              type="button"
+              className={cn(
+                'relative min-w-0 flex-1 overflow-hidden rounded-md border p-4 text-left text-sm shadow-none',
+                'cursor-pointer transition-[transform,colors] duration-150 ease-out active:scale-[0.98]',
+                'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                firstMinutePassed
+                  ? 'border-rose-400/35 bg-rose-500/[0.12] dark:border-rose-500/30 dark:bg-rose-500/[0.14]'
+                  : 'border-border bg-card'
+              )}
+              onClick={handleToggleTimerPause}
+              aria-pressed={timerPaused}
+              aria-label={[
+                timerPaused ? 'Resume warm-up timer' : 'Pause warm-up timer',
+                firstMinutePassed ? ', more than one minute elapsed' : '',
+              ].join('')}
+            >
+              {warmUpRunning ? (
+                <span
+                  className={cn(
+                    'pointer-events-none absolute inset-0 z-0 rounded-[inherit]',
+                    firstMinutePassed
+                      ? 'bg-background motion-safe:animate-[speaking-timer-running-hint_2.8s_ease-in-out_infinite]'
+                      : 'bg-muted motion-safe:animate-[speaking-timer-running-hint-gray_2.8s_ease-in-out_infinite]'
+                  )}
+                  aria-hidden
+                />
+              ) : null}
+              <div className="relative z-10 flex min-w-0 flex-col gap-2">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Timer className="size-3.5 shrink-0" aria-hidden />
                   <span>Warm-up timer</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                  <span className="text-muted-foreground" aria-hidden>
-                    ⏱
-                  </span>
-                  <span
-                    className={cn(
-                      'font-mono tabular-nums',
-                      firstMinutePassed
-                        ? 'font-semibold text-destructive'
-                        : 'text-foreground',
-                    )}
-                  >
-                    {formatClockSeconds(elapsedSec)}
-                  </span>
-                  {timerPaused ? (
-                    <span className="text-muted-foreground">Paused</span>
-                  ) : null}
-                </div>
+                <span className="font-mono text-base font-semibold tabular-nums tracking-tight text-foreground sm:text-lg">
+                  {formatClockSeconds(elapsedSec)}
+                </span>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer shrink-0 gap-1.5"
-                onClick={handleToggleTimerPause}
-                aria-pressed={timerPaused}
-                aria-label={timerPaused ? 'Resume warm-up timer' : 'Pause warm-up timer'}
+              <span
+                className="pointer-events-none absolute right-2.5 bottom-2.5 z-10 text-muted-foreground"
+                aria-hidden
               >
                 {timerPaused ? (
-                  <>
-                    <Play className="size-3.5 shrink-0" aria-hidden />
-                    Resume
-                  </>
+                  <Play className="size-2.5 shrink-0 sm:size-3" aria-hidden />
                 ) : (
-                  <>
-                    <Pause className="size-3.5 shrink-0" aria-hidden />
-                    Pause
-                  </>
+                  <Pause className="size-2.5 shrink-0 sm:size-3" aria-hidden />
                 )}
-              </Button>
-            </div>
-          </div>
+              </span>
+            </button>
 
-          <div
-            className="rounded-md border border-border bg-card p-4 text-sm"
-            aria-label={[
-              !extendedHasStarted
-                ? 'Session timer, not started'
-                : extendedTimerPaused
-                  ? 'Session timer, paused'
-                  : 'Session timer, running',
-              extendedGreenReached ? ', at or past two and a half minutes' : '',
-            ].join('')}
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="flex min-w-0 flex-col gap-2">
+            <button
+              type="button"
+              className={cn(
+                'relative min-w-0 flex-1 overflow-hidden rounded-md border p-4 text-left text-sm shadow-none',
+                'cursor-pointer transition-[transform,colors] duration-150 ease-out active:scale-[0.98]',
+                'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                extendedGreenReached
+                  ? 'border-emerald-400/35 bg-emerald-500/[0.12] dark:border-emerald-500/30 dark:bg-emerald-500/[0.14]'
+                  : 'border-border bg-card'
+              )}
+              onClick={handleToggleExtendedTimer}
+              aria-pressed={extendedHasStarted ? !extendedTimerPaused : false}
+              aria-label={[
+                !extendedHasStarted
+                  ? 'Start session timer'
+                  : extendedTimerPaused
+                    ? 'Resume session timer'
+                    : 'Pause session timer',
+                extendedGreenReached ? ', at or past two and a half minutes' : '',
+              ].join('')}
+            >
+              {sessionRunning ? (
+                <span
+                  className={cn(
+                    'pointer-events-none absolute inset-0 z-0 rounded-[inherit]',
+                    extendedGreenReached
+                      ? 'bg-background motion-safe:animate-[speaking-timer-running-hint_2.8s_ease-in-out_infinite]'
+                      : 'bg-muted motion-safe:animate-[speaking-timer-running-hint-gray_2.8s_ease-in-out_infinite]'
+                  )}
+                  aria-hidden
+                />
+              ) : null}
+              <div className="relative z-10 flex min-w-0 flex-col gap-2">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Timer className="size-3.5 shrink-0" aria-hidden />
                   <span>Session timer</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                  <span className="text-muted-foreground" aria-hidden>
-                    ⏱
-                  </span>
-                  <span
-                    className={cn(
-                      'font-mono tabular-nums',
-                      extendedGreenReached
-                        ? 'font-semibold text-green-600 dark:text-green-400'
-                        : 'text-foreground',
-                    )}
-                  >
-                    {formatClockSeconds(extendedElapsedSec)}
-                  </span>
-                  {extendedHasStarted && extendedTimerPaused ? (
-                    <span className="text-muted-foreground">Paused</span>
-                  ) : null}
-                </div>
+                <span className="font-mono text-base font-semibold tabular-nums tracking-tight text-foreground sm:text-lg">
+                  {formatClockSeconds(extendedElapsedSec)}
+                </span>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer shrink-0 gap-1.5"
-                onClick={handleToggleExtendedTimer}
-                aria-pressed={
-                  extendedHasStarted ? !extendedTimerPaused : false
-                }
-                aria-label={
-                  !extendedHasStarted
-                    ? 'Start session timer'
-                    : extendedTimerPaused
-                      ? 'Resume session timer'
-                      : 'Pause session timer'
-                }
+              <span
+                className="pointer-events-none absolute right-2.5 bottom-2.5 z-10 text-muted-foreground"
+                aria-hidden
               >
                 {!extendedHasStarted || extendedTimerPaused ? (
-                  <>
-                    <Play className="size-3.5 shrink-0" aria-hidden />
-                    {!extendedHasStarted ? 'Start' : 'Resume'}
-                  </>
+                  <Play className="size-2.5 shrink-0 sm:size-3" aria-hidden />
                 ) : (
-                  <>
-                    <Pause className="size-3.5 shrink-0" aria-hidden />
-                    Pause
-                  </>
+                  <Pause className="size-2.5 shrink-0 sm:size-3" aria-hidden />
                 )}
-              </Button>
-            </div>
+              </span>
+            </button>
           </div>
 
           <Textarea
@@ -570,9 +529,8 @@ export default function SpeakingPage() {
             ) : null}
             {saveSuccess && submittedExtendedMs !== null ? (
               <p className="text-sm text-green-600 dark:text-green-400" role="status">
-                Saved: session timer (
-                {formatClockSeconds(Math.floor(submittedExtendedMs / 1000))}
-                ) stored in Firestore.
+                Saved: session timer ({formatClockSeconds(Math.floor(submittedExtendedMs / 1000))})
+                stored in Firestore.
               </p>
             ) : null}
           </div>
