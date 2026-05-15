@@ -1,6 +1,7 @@
 import { Loader2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
+import { PracticeTypologyPicker } from '@/components/practice-typology-picker'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,6 +17,10 @@ import {
   fetchWritingPromptsByTask,
 } from '@/services/writing-firestore.service'
 import type { GeminiFeedbackPayload } from '@/types/gemini.types'
+import {
+  PRACTICE_TYPOLOGY_DEFAULT,
+  type PracticeTypology,
+} from '@/types/practice-typology.types'
 import type { WritingPrompt, WritingTask } from '@/types/writing.types'
 import { formatClockSeconds } from '@/utils/format-duration.utils'
 import { countWords, paragraphWordCounts } from '@/utils/word-count.utils'
@@ -34,6 +39,9 @@ export default function WritingPage() {
   const [availablePrompts, setAvailablePrompts] = useState<WritingPrompt[] | null>(null)
   const [promptsLoading, setPromptsLoading] = useState(false)
   const [promptsError, setPromptsError] = useState<string | null>(null)
+  const [practiceTypology, setPracticeTypology] = useState<PracticeTypology>(
+    PRACTICE_TYPOLOGY_DEFAULT,
+  )
 
   const startRef = useRef<number | null>(null)
   const firebaseReady = isFirebaseConfigured()
@@ -96,6 +104,7 @@ export default function WritingPage() {
   function startWithPrompt(p: WritingPrompt) {
     setError(null)
     setFeedback(null)
+    setPracticeTypology(PRACTICE_TYPOLOGY_DEFAULT)
     const draftKey = writingDraftStorageKey(p.id)
     setAnswer(localStorage.getItem(draftKey) ?? '')
     setPrompt(p)
@@ -154,6 +163,7 @@ export default function WritingPage() {
           durationMs,
           feedback: fb,
           rawModelText: rawText,
+          practiceTypology,
         })
       }
       localStorage.removeItem(writingDraftStorageKey(prompt.id))
@@ -177,6 +187,7 @@ export default function WritingPage() {
     setElapsedSec(0)
     startRef.current = null
     setError(null)
+    setPracticeTypology(PRACTICE_TYPOLOGY_DEFAULT)
   }
 
   return (
@@ -333,6 +344,12 @@ export default function WritingPage() {
             rows={16}
             placeholder="Write your response here…"
             aria-label="Your writing response"
+          />
+
+          <PracticeTypologyPicker
+            value={practiceTypology}
+            onChange={setPracticeTypology}
+            disabled={loading}
           />
 
           <div className="flex flex-wrap gap-2">

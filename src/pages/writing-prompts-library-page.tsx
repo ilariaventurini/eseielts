@@ -2,6 +2,7 @@ import { Loader2, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
+import { PracticeTypologyBadge } from '@/components/practice-typology-badge'
 import { Button } from '@/components/ui/button'
 import { skillBackofficePath } from '@/constants/routes.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
@@ -184,6 +185,7 @@ export default function WritingPromptsLibraryPage() {
                       >
                         Task {String(p.task)}
                       </span>
+                      <PracticeTypologyBadge value={p.practiceTypology} />
                       {p.title.trim().length > 0 ? (
                         <span className="font-medium text-foreground">{p.title}</span>
                       ) : (

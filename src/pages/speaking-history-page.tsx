@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
+import { PracticeTypologyBadge } from '@/components/practice-typology-badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -92,13 +93,16 @@ export default function SpeakingHistoryPage() {
         {items.map((a) => (
           <Card key={a.id}>
             <CardHeader>
-              <CardTitle className="text-base">
-                {a.promptTitle}
-                {' '}
-                <span className="text-muted-foreground">
-                  · Task {String(a.task)}
-                </span>
-              </CardTitle>
+              <div className="flex flex-wrap items-start gap-2">
+                <CardTitle className="min-w-0 flex-1 text-base">
+                  {a.promptTitle}
+                  {' '}
+                  <span className="text-muted-foreground">
+                    · Task {String(a.task)}
+                  </span>
+                </CardTitle>
+                <PracticeTypologyBadge value={a.practiceTypology} />
+              </div>
               <CardDescription>
                 {formatWhen(a)} · Session timer{' '}
                 {formatClockSeconds(Math.floor(a.extendedTimerMs / 1000))}

@@ -21,6 +21,7 @@ import {
 } from '@/lib/firebase'
 import { createWritingPrompts } from '@/services/writing-firestore.service'
 import { uploadTask1PromptImage } from '@/services/writing-storage.service'
+import { PRACTICE_TYPOLOGY_DEFAULT } from '@/types/practice-typology.types'
 import type { WritingTask } from '@/types/writing.types'
 
 interface PromptRow {
@@ -102,6 +103,7 @@ export default function BackofficePage() {
         title: row.title.trim(),
         body: row.body.trim(),
         imageUrl: task === 1 ? row.imageUrl.trim() : null,
+        practiceTypology: PRACTICE_TYPOLOGY_DEFAULT,
       }))
       .filter((row) => row.body.length > 0)
     if (payload.length === 0) {

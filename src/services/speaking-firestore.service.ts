@@ -12,6 +12,7 @@ import {
 
 import { FIRESTORE_COLLECTIONS } from '@/constants/firestore.constants'
 import { getDb } from '@/lib/firebase'
+import { normalizePracticeTypology } from '@/types/practice-typology.types'
 import type {
   SpeakingAttempt,
   SpeakingPrompt,
@@ -31,6 +32,7 @@ function mapPrompt(id: string, data: DocumentData): SpeakingPrompt {
     task: normalizeTask(data.task),
     title: typeof data.title === 'string' ? data.title : '',
     body: typeof data.body === 'string' ? data.body : '',
+    practiceTypology: normalizePracticeTypology(data.practiceTypology),
     createdAt: data.createdAt ?? null,
   }
 }
@@ -52,12 +54,18 @@ function mapSpeakingAttempt(id: string, data: DocumentData): SpeakingAttempt {
     notes: typeof data.notes === 'string' ? data.notes : '',
     extendedTimerMs:
       typeof data.extendedTimerMs === 'number' ? data.extendedTimerMs : 0,
+    practiceTypology: normalizePracticeTypology(data.practiceTypology),
     createdAt: data.createdAt ?? null,
   }
 }
 
 export async function createSpeakingPrompts(
-  items: readonly { task: SpeakingTask; title: string; body: string }[],
+  items: readonly {
+    task: SpeakingTask
+    title: string
+    body: string
+    practiceTypology: SpeakingPrompt['practiceTypology']
+  }[],
 ) {
   const db = getDb()
   if (!db) {
@@ -70,6 +78,7 @@ export async function createSpeakingPrompts(
         task: item.task,
         title: item.title,
         body: item.body,
+        practiceTypology: item.practiceTypology,
         createdAt: serverTimestamp(),
       }),
     ),
@@ -112,6 +121,7 @@ export async function createSpeakingAttempt(payload: {
   promptBody: string
   notes: string
   extendedTimerMs: number
+  practiceTypology: SpeakingAttempt['practiceTypology']
 }) {
   const db = getDb()
   if (!db) {
@@ -119,7 +129,13 @@ export async function createSpeakingAttempt(payload: {
   }
   const col = collection(db, FIRESTORE_COLLECTIONS.speakingAttempts)
   await addDoc(col, {
-    ...payload,
+    promptId: payload.promptId,
+    task: payload.task,
+    promptTitle: payload.promptTitle,
+    promptBody: payload.promptBody,
+    notes: payload.notes,
+    extendedTimerMs: payload.extendedTimerMs,
+    practiceTypology: payload.practiceTypology,
     createdAt: serverTimestamp(),
   })
 }

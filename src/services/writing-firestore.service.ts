@@ -12,6 +12,7 @@ import {
 
 import { FIRESTORE_COLLECTIONS } from '@/constants/firestore.constants'
 import { getDb } from '@/lib/firebase'
+import { normalizePracticeTypology } from '@/types/practice-typology.types'
 import type {
   WritingAttempt,
   WritingPrompt,
@@ -27,6 +28,7 @@ function mapPrompt(id: string, data: DocumentData): WritingPrompt {
     imageUrl: rawImage.length > 0 ? rawImage : null,
     title: typeof data.title === 'string' ? data.title : '',
     body: typeof data.body === 'string' ? data.body : '',
+    practiceTypology: normalizePracticeTypology(data.practiceTypology),
     createdAt: data.createdAt ?? null,
   }
 }
@@ -47,6 +49,7 @@ function mapAttempt(id: string, data: DocumentData): WritingAttempt {
     feedback: data.feedback as WritingAttempt['feedback'],
     rawModelText:
       typeof data.rawModelText === 'string' ? data.rawModelText : '',
+    practiceTypology: normalizePracticeTypology(data.practiceTypology),
     createdAt: data.createdAt ?? null,
   }
 }
@@ -57,6 +60,7 @@ export async function createWritingPrompts(
     title: string
     body: string
     imageUrl: string | null
+    practiceTypology: WritingPrompt['practiceTypology']
   }[],
 ) {
   const db = getDb()
@@ -71,6 +75,7 @@ export async function createWritingPrompts(
         title: item.title,
         body: item.body,
         imageUrl: item.imageUrl,
+        practiceTypology: item.practiceTypology,
         createdAt: serverTimestamp(),
       }),
     ),
@@ -133,6 +138,7 @@ export async function createWritingAttempt(payload: {
   durationMs: number
   feedback: WritingAttempt['feedback']
   rawModelText: string
+  practiceTypology: WritingAttempt['practiceTypology']
 }) {
   const db = getDb()
   if (!db) {
@@ -140,7 +146,17 @@ export async function createWritingAttempt(payload: {
   }
   const col = collection(db, FIRESTORE_COLLECTIONS.writingAttempts)
   await addDoc(col, {
-    ...payload,
+    promptId: payload.promptId,
+    task: payload.task,
+    promptTitle: payload.promptTitle,
+    promptBody: payload.promptBody,
+    promptImageUrl: payload.promptImageUrl,
+    answer: payload.answer,
+    wordCount: payload.wordCount,
+    durationMs: payload.durationMs,
+    feedback: payload.feedback,
+    rawModelText: payload.rawModelText,
+    practiceTypology: payload.practiceTypology,
     createdAt: serverTimestamp(),
   })
 }

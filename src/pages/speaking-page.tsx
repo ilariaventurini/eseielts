@@ -1,6 +1,7 @@
 import { Loader2, Pause, Play, Timer } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
+import { PracticeTypologyPicker } from '@/components/practice-typology-picker'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,6 +18,10 @@ import {
   createSpeakingAttempt,
   fetchSpeakingPromptsByTask,
 } from '@/services/speaking-firestore.service'
+import {
+  PRACTICE_TYPOLOGY_DEFAULT,
+  type PracticeTypology,
+} from '@/types/practice-typology.types'
 import type { SpeakingPrompt, SpeakingTask } from '@/types/speaking.types'
 import { formatClockSeconds } from '@/utils/format-duration.utils'
 
@@ -35,6 +40,9 @@ export default function SpeakingPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [submittedExtendedMs, setSubmittedExtendedMs] = useState<number | null>(null)
+  const [practiceTypology, setPracticeTypology] = useState<PracticeTypology>(
+    PRACTICE_TYPOLOGY_DEFAULT,
+  )
 
   const { user } = useAuth()
 
@@ -168,6 +176,7 @@ export default function SpeakingPage() {
     resetExtendedTimer()
     const notesKey = speakingNotesStorageKey(p.id)
     setNotes(localStorage.getItem(notesKey) ?? '')
+    setPracticeTypology(PRACTICE_TYPOLOGY_DEFAULT)
     setPrompt(p)
     setPhase('practice')
     runStartRef.current = Date.now()
@@ -249,6 +258,7 @@ export default function SpeakingPage() {
         promptBody: prompt.body,
         notes,
         extendedTimerMs,
+        practiceTypology,
       })
       setSubmittedExtendedMs(extendedTimerMs)
       setSaveSuccess(true)
@@ -276,6 +286,7 @@ export default function SpeakingPage() {
     setSaveError(null)
     setSaveSuccess(false)
     setSubmittedExtendedMs(null)
+    setPracticeTypology(PRACTICE_TYPOLOGY_DEFAULT)
   }
 
   return (
@@ -509,6 +520,11 @@ export default function SpeakingPage() {
                 to save your session timer and notes to Firebase.
               </p>
             ) : null}
+            <PracticeTypologyPicker
+              value={practiceTypology}
+              onChange={setPracticeTypology}
+              disabled={submitLoading}
+            />
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"

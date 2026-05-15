@@ -1,4 +1,5 @@
 import type { Timestamp } from 'firebase/firestore'
+import type { PracticeTypology } from '@/types/practice-typology.types'
 import type { GeminiFeedbackPayload } from '@/types/gemini.types'
 
 export type WritingTask = 1 | 2
@@ -9,6 +10,7 @@ export interface WritingPrompt {
   readonly imageUrl: string | null
   readonly title: string
   readonly body: string
+  readonly practiceTypology: PracticeTypology
   readonly createdAt: Timestamp | null
 }
 
@@ -24,5 +26,6 @@ export interface WritingAttempt {
   readonly durationMs: number
   readonly feedback: GeminiFeedbackPayload
   readonly rawModelText: string
+  readonly practiceTypology: PracticeTypology
   readonly createdAt: Timestamp | null
 }

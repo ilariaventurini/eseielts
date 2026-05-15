@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { skillPromptsLibraryPath } from '@/constants/routes.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { createSpeakingPrompts } from '@/services/speaking-firestore.service'
+import { PRACTICE_TYPOLOGY_DEFAULT } from '@/types/practice-typology.types'
 import type { SpeakingTask } from '@/types/speaking.types'
 
 interface PromptRow {
@@ -66,6 +67,7 @@ export default function SpeakingBackofficePage() {
         task,
         title: row.title.trim(),
         body: row.body.trim(),
+        practiceTypology: PRACTICE_TYPOLOGY_DEFAULT,
       }))
       .filter((row) => row.body.length > 0)
     if (payload.length === 0) {

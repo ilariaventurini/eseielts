@@ -38,6 +38,47 @@ const feedbackSchema = z.object({
   improvements: z.array(z.string()).optional(),
 })
 
+/** Mirrors src/utils/gemini-json.utils.ts so the function bundle does not depend on ../src. */
+function extractJsonObject(text: string) {
+  const trimmed = text.trim()
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
+  const candidate = fenceMatch?.[1]?.trim() ?? trimmed
+  const start = candidate.indexOf('{')
+  const end = candidate.lastIndexOf('}')
+  if (start === -1 || end === -1 || end <= start) {
+    return candidate
+  }
+  return candidate.slice(start, end + 1)
+}
+
+function assertGenerationNotTruncated(result: GenerateContentResult) {
+  const fr = result.response.candidates?.[0]?.finishReason
+  if (fr === 'MAX_TOKENS') {
+    throw new Error(
+      'Gemini hit the output token limit (response truncated before completion). Increase GEMINI_MAX_OUTPUT_TOKENS on the Netlify function (e.g. 8192 or 16384), redeploy, then try again.',
+    )
+  }
+}
+
+function parseFeedbackPayloadJson(result: GenerateContentResult, rawText: string) {
+  assertGenerationNotTruncated(result)
+  const candidate = extractJsonObject(rawText)
+  try {
+    return JSON.parse(candidate) as unknown
+  } catch (firstErr) {
+    try {
+      return JSON.parse(rawText.trim()) as unknown
+    } catch {
+      const base = firstErr instanceof Error ? firstErr.message : 'Invalid JSON from model'
+      const hint =
+        base.includes('Unterminated') || base.includes('Unexpected end')
+          ? ' This usually means the model output was cut off; raise GEMINI_MAX_OUTPUT_TOKENS and redeploy.'
+          : ' Try submitting again; if it persists, switch GEMINI_MODEL (e.g. gemini-2.0-flash).'
+      throw new Error(`${base}.${hint}`)
+    }
+  }
+}
+
 function buildInstruction(task: 1 | 2, targetLevel: string) {
   return `You are an IELTS Writing tutor. The learner targets ${targetLevel} competence but answers must be scored on the official IELTS Writing band scale (0–9, half bands allowed in your internal reasoning but output band as one number with 0.5 steps if needed — use a single number 0–9 in JSON as number).
 
@@ -65,7 +106,7 @@ Return ONLY valid JSON matching this shape (no markdown fences):
   "improvements": string[]
 }
 
-Be concrete and reference the user's answer. Keep modelAnswer within typical IELTS word-count expectations for the task.`
+Be concrete and reference the user's answer. Keep modelAnswer within typical IELTS word-count expectations for the task. Keep correction, modelAnswer, and criteria strings concise so the entire reply is one complete valid JSON object (no truncation mid-string).`
 }
 
 const jsonHeaders = {
@@ -78,9 +119,9 @@ const jsonHeaders = {
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024
 
 const MIN_GEMINI_BUDGET_MS = 8000
-const IMAGE_FETCH_MAX_MS = 22_000
-const LAMBDA_FINISH_BUFFER_MS = 2000
-const GEMINI_RETRY_DEFAULT_ATTEMPTS = 4
+const IMAGE_FETCH_MAX_MS = 14_000
+const LAMBDA_FINISH_BUFFER_MS = 1200
+const GEMINI_RETRY_DEFAULT_ATTEMPTS = 3
 const GEMINI_RETRY_MIN_REMAINING_MS =
   LAMBDA_FINISH_BUFFER_MS + MIN_GEMINI_BUDGET_MS + 1200
 
@@ -94,6 +135,18 @@ function parseGeminiRetryMaxAttempts(): number {
     return GEMINI_RETRY_DEFAULT_ATTEMPTS
   }
   return Math.min(8, n)
+}
+
+function parseGeminiMaxOutputTokens() {
+  const raw = process.env.GEMINI_MAX_OUTPUT_TOKENS
+  if (raw === undefined || raw.trim() === '') {
+    return 8192
+  }
+  const n = Number.parseInt(raw, 10)
+  if (!Number.isFinite(n) || n < 1024) {
+    return 8192
+  }
+  return Math.min(16_384, n)
 }
 
 function isRetryableGeminiError(err: unknown): boolean {
@@ -251,7 +304,7 @@ export const handler: Handler = async (event, context) => {
     model: modelName,
     generationConfig: {
       responseMimeType: 'application/json',
-      maxOutputTokens: 8192,
+      maxOutputTokens: parseGeminiMaxOutputTokens(),
     },
     systemInstruction: buildInstruction(input.task, input.targetLevel),
   })
@@ -276,7 +329,7 @@ ${input.answer}`
       const remainingAfterImage = context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS
       const imageFetchMs = Math.min(
         IMAGE_FETCH_MAX_MS,
-        Math.max(3000, Math.floor(remainingAfterImage * 0.35)),
+        Math.max(3000, Math.floor(remainingAfterImage * 0.3)),
       )
       const imagePart = await fetchImagePart(imageUrl, imageFetchMs)
       parts.push({
@@ -303,7 +356,7 @@ ${input.answer}`
       () => context.getRemainingTimeInMillis(),
     )
     const text = result.response.text()
-    const feedbackUnknown = JSON.parse(text) as unknown
+    const feedbackUnknown = parseFeedbackPayloadJson(result, text)
     const feedback = feedbackSchema.parse(feedbackUnknown)
     return {
       statusCode: 200,
@@ -320,7 +373,7 @@ ${input.answer}`
       message.includes('timed out') ||
       message.includes('no time left before function timeout')
     ) {
-      message = `${message} If this happens often, increase the Netlify function timeout for gemini-feedback (see netlify.toml) or upgrade your Netlify plan limit.`
+      message = `${message} Mitigations: raise the synchronous function timeout in the Netlify UI (then redeploy) and ensure netlify.toml matches your plan; netlify dev often simulates ~30s unless you run netlify link; try GEMINI_MODEL=gemini-2.0-flash for faster responses, or GEMINI_MAX_OUTPUT_TOKENS=16384 if the model JSON was truncated.`
     }
     if (
       message.includes('[503') ||
