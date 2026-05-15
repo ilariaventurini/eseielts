@@ -92,17 +92,6 @@ export default function HomePage() {
             </Card>
           </Link>
         ))}
-        <Card className="sm:col-span-2">
-          <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>
-              Sign in with Google to identify your session (optional for now).
-            </CardDescription>
-            <Button asChild className="mt-4 w-fit cursor-pointer">
-              <Link to={ROUTES.signIn}>Go to sign in</Link>
-            </Button>
-          </CardHeader>
-        </Card>
       </div>
     </div>
   )
