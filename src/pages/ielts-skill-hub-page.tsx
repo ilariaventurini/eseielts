@@ -31,7 +31,7 @@ function skillSubtitle(s: IeltsSkill) {
   if (s === 'listening' || s === 'reading') {
     return 'This paper is not available yet; choose Writing or Speaking from the header or home.'
   }
-  return 'Exercises and history are coming soon; backoffice and prompts library are available.'
+  return 'Practice, history, backoffice, and prompts library are available.'
 }
 
 function isHubActionsDisabled(skill: IeltsSkill) {

@@ -52,7 +52,9 @@ export const ROUTES = {
   writingBackoffice: '/writing/backoffice',
   listeningExercises: skillExercisesPath('listening'),
   readingExercises: skillExercisesPath('reading'),
+  speaking: '/speaking',
   speakingExercises: skillExercisesPath('speaking'),
+  speakingHistory: skillHistoryPath('speaking'),
 } as const
 
 export type RouteKey = keyof typeof ROUTES

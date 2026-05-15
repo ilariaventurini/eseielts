@@ -2,6 +2,8 @@ import {
   addDoc,
   collection,
   getDocs,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
   where,
@@ -10,7 +12,11 @@ import {
 
 import { FIRESTORE_COLLECTIONS } from '@/constants/firestore.constants'
 import { getDb } from '@/lib/firebase'
-import type { SpeakingPrompt, SpeakingTask } from '@/types/speaking.types'
+import type {
+  SpeakingAttempt,
+  SpeakingPrompt,
+  SpeakingTask,
+} from '@/types/speaking.types'
 
 function normalizeTask(value: unknown): SpeakingTask {
   if (value === 1 || value === 2 || value === 3) {
@@ -34,6 +40,20 @@ function promptCreatedMs(createdAt: SpeakingPrompt['createdAt']) {
     return createdAt.toMillis()
   }
   return 0
+}
+
+function mapSpeakingAttempt(id: string, data: DocumentData): SpeakingAttempt {
+  return {
+    id,
+    promptId: typeof data.promptId === 'string' ? data.promptId : '',
+    task: normalizeTask(data.task),
+    promptTitle: typeof data.promptTitle === 'string' ? data.promptTitle : '',
+    promptBody: typeof data.promptBody === 'string' ? data.promptBody : '',
+    notes: typeof data.notes === 'string' ? data.notes : '',
+    extendedTimerMs:
+      typeof data.extendedTimerMs === 'number' ? data.extendedTimerMs : 0,
+    createdAt: data.createdAt ?? null,
+  }
 }
 
 export async function createSpeakingPrompts(
@@ -83,4 +103,34 @@ export async function fetchSpeakingPromptsByTask(task: SpeakingTask) {
   return [...prompts].sort(
     (a, b) => promptCreatedMs(b.createdAt) - promptCreatedMs(a.createdAt),
   )
+}
+
+export async function createSpeakingAttempt(payload: {
+  promptId: string
+  task: SpeakingTask
+  promptTitle: string
+  promptBody: string
+  notes: string
+  extendedTimerMs: number
+}) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const col = collection(db, FIRESTORE_COLLECTIONS.speakingAttempts)
+  await addDoc(col, {
+    ...payload,
+    createdAt: serverTimestamp(),
+  })
+}
+
+export async function fetchSpeakingAttempts(max = 80) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const col = collection(db, FIRESTORE_COLLECTIONS.speakingAttempts)
+  const q = query(col, orderBy('createdAt', 'desc'), limit(max))
+  const snap = await getDocs(q)
+  return snap.docs.map((doc) => mapSpeakingAttempt(doc.id, doc.data()))
 }
