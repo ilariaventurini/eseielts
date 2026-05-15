@@ -1,9 +1,4 @@
-export const IELTS_SKILLS = [
-  'listening',
-  'reading',
-  'writing',
-  'speaking',
-] as const
+export const IELTS_SKILLS = ['listening', 'reading', 'writing', 'speaking'] as const
 
 export type IeltsSkill = (typeof IELTS_SKILLS)[number]
 

@@ -236,12 +236,8 @@ export default function WritingPage() {
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-foreground">
-              Or pick a specific exercise
-            </h2>
-            {promptsError ? (
-              <p className="text-sm text-destructive">{promptsError}</p>
-            ) : null}
+            <h2 className="text-sm font-medium text-foreground">Or pick a specific exercise</h2>
+            {promptsError ? <p className="text-sm text-destructive">{promptsError}</p> : null}
             {promptsLoading && availablePrompts === null ? (
               <div
                 className="flex items-center gap-2 text-sm text-muted-foreground"
@@ -268,7 +264,7 @@ export default function WritingPage() {
                         onClick={() => startWithPrompt(p)}
                         className={cn(
                           'group flex w-full cursor-pointer items-start gap-3 rounded-md border border-border bg-card p-3 text-left text-sm shadow-sm transition-colors',
-                          'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                         )}
                         aria-label={`Start exercise: ${label}`}
                       >
@@ -280,11 +276,7 @@ export default function WritingPage() {
                         </div>
                         {p.task === 1 && p.imageUrl ? (
                           <div className="shrink-0 overflow-hidden rounded border bg-muted">
-                            <img
-                              src={p.imageUrl}
-                              alt=""
-                              className="size-16 object-cover"
-                            />
+                            <img src={p.imageUrl} alt="" className="size-16 object-cover" />
                           </div>
                         ) : null}
                       </button>

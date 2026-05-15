@@ -144,6 +144,21 @@ export default function SpeakingPage() {
     setExtendedTimerPaused(true)
   }
 
+  function freezePracticeTimersAtNow() {
+    if (runStartRef.current !== null) {
+      accumulatedMsRef.current += Date.now() - runStartRef.current
+      runStartRef.current = null
+      setElapsedSec(Math.floor(accumulatedMsRef.current / 1000))
+    }
+    setTimerPaused(true)
+    if (extendedRunStartRef.current !== null) {
+      extendedAccumulatedMsRef.current += Date.now() - extendedRunStartRef.current
+      extendedRunStartRef.current = null
+      setExtendedElapsedSec(Math.floor(extendedAccumulatedMsRef.current / 1000))
+    }
+    setExtendedTimerPaused(true)
+  }
+
   function startWithPrompt(p: SpeakingPrompt) {
     setError(null)
     setSaveError(null)
@@ -237,6 +252,7 @@ export default function SpeakingPage() {
       })
       setSubmittedExtendedMs(extendedTimerMs)
       setSaveSuccess(true)
+      freezePracticeTimersAtNow()
     } catch (e) {
       const raw = e instanceof Error ? e.message : 'Failed to save'
       const isPermission = /permission|insufficient permissions|missing or insufficient/i.test(raw)
@@ -251,11 +267,11 @@ export default function SpeakingPage() {
   }
 
   function handleNewSession() {
+    resetSessionTimer()
+    resetExtendedTimer()
     setPhase('pick')
     setPrompt(null)
     setNotes('')
-    resetSessionTimer()
-    resetExtendedTimer()
     setError(null)
     setSaveError(null)
     setSaveSuccess(false)
