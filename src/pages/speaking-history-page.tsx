@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
+import { HistoryAttemptFilters } from '@/components/history-attempt-filters'
 import { PracticeTypologyBadge } from '@/components/practice-typology-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +16,19 @@ import { isFirebaseConfigured } from '@/lib/firebase'
 import { fetchSpeakingAttempts } from '@/services/speaking-firestore.service'
 import type { SpeakingAttempt } from '@/types/speaking.types'
 import { formatClockSeconds } from '@/utils/format-duration.utils'
+import {
+  matchesTaskFilter,
+  matchesTypologyFilter,
+  type HistoryTaskFilter,
+  type HistoryTypologyFilter,
+} from '@/utils/history-filters.utils'
+
+const SPEAKING_TASK_FILTER_OPTIONS = [
+  { key: 'all' as const, label: 'All tasks' },
+  { key: 1 as const, label: 'Task 1' },
+  { key: 2 as const, label: 'Task 2' },
+  { key: 3 as const, label: 'Task 3' },
+] as const
 
 function formatWhen(attempt: SpeakingAttempt) {
   const ts = attempt.createdAt
@@ -24,6 +38,18 @@ function formatWhen(attempt: SpeakingAttempt) {
   return ts.toDate().toLocaleString('en-GB')
 }
 
+function filterSpeakingAttempts(
+  items: readonly SpeakingAttempt[],
+  taskFilter: HistoryTaskFilter,
+  typologyFilter: HistoryTypologyFilter,
+) {
+  return items.filter(
+    (a) =>
+      matchesTaskFilter(a.task, taskFilter) &&
+      matchesTypologyFilter(a.practiceTypology, typologyFilter),
+  )
+}
+
 export default function SpeakingHistoryPage() {
   const firebaseReady = isFirebaseConfigured()
   const configError = firebaseReady ? null : 'Firebase is not configured.'
@@ -31,6 +57,8 @@ export default function SpeakingHistoryPage() {
   const [items, setItems] = useState<SpeakingAttempt[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [loading, setLoading] = useState(firebaseReady)
+  const [taskFilter, setTaskFilter] = useState<HistoryTaskFilter>('all')
+  const [typologyFilter, setTypologyFilter] = useState<HistoryTypologyFilter>('all')
 
   useEffect(() => {
     if (!firebaseReady) {
@@ -60,6 +88,13 @@ export default function SpeakingHistoryPage() {
     }
   }, [firebaseReady])
 
+  const filteredItems = useMemo(
+    () => filterSpeakingAttempts(items, taskFilter, typologyFilter),
+    [items, taskFilter, typologyFilter],
+  )
+
+  const hasActiveFilters = taskFilter !== 'all' || typologyFilter !== 'all'
+
   const error = configError ?? fetchError
 
   return (
@@ -83,14 +118,50 @@ export default function SpeakingHistoryPage() {
       ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
+      {!loading && !error && items.length > 0 ? (
+        <>
+          <HistoryAttemptFilters
+            taskFilter={taskFilter}
+            onTaskFilterChange={setTaskFilter}
+            taskOptions={SPEAKING_TASK_FILTER_OPTIONS}
+            typologyFilter={typologyFilter}
+            onTypologyFilterChange={setTypologyFilter}
+          />
+          <p className="text-xs text-muted-foreground">
+            Showing {String(filteredItems.length)} of {String(items.length)} attempt(s).
+          </p>
+        </>
+      ) : null}
+
       {!loading && !error && items.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No attempts yet. Submit a practice from the Speaking exercises page.
         </p>
       ) : null}
 
+      {!loading && !error && items.length > 0 && filteredItems.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No attempts match these filters.
+          {hasActiveFilters ? (
+            <>
+              {' '}
+              <button
+                type="button"
+                className="cursor-pointer font-medium text-foreground underline-offset-4 hover:underline"
+                onClick={() => {
+                  setTaskFilter('all')
+                  setTypologyFilter('all')
+                }}
+              >
+                Clear filters
+              </button>
+            </>
+          ) : null}
+        </p>
+      ) : null}
+
       <div className="flex flex-col gap-4">
-        {items.map((a) => (
+        {filteredItems.map((a) => (
           <Card key={a.id}>
             <CardHeader>
               <div className="flex flex-wrap items-start gap-2">

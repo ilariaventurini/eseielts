@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
+import { HistoryAttemptFilters } from '@/components/history-attempt-filters'
+import { HistoryCorrectionAccordion } from '@/components/history-correction-accordion'
 import { PracticeTypologyBadge } from '@/components/practice-typology-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,11 +12,26 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import type { WritingBandFilter } from '@/constants/history-filters.constants'
 import { ROUTES } from '@/constants/routes.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { fetchWritingAttempts } from '@/services/writing-firestore.service'
 import type { WritingAttempt } from '@/types/writing.types'
 import { formatClockSeconds } from '@/utils/format-duration.utils'
+import {
+  getAttemptBandScore,
+  matchesBandFilter,
+  matchesTaskFilter,
+  matchesTypologyFilter,
+  type HistoryTaskFilter,
+  type HistoryTypologyFilter,
+} from '@/utils/history-filters.utils'
+
+const WRITING_TASK_FILTER_OPTIONS = [
+  { key: 'all' as const, label: 'All tasks' },
+  { key: 1 as const, label: 'Task 1' },
+  { key: 2 as const, label: 'Task 2' },
+] as const
 
 function formatWhen(attempt: WritingAttempt) {
   const ts = attempt.createdAt
@@ -24,6 +41,20 @@ function formatWhen(attempt: WritingAttempt) {
   return ts.toDate().toLocaleString('en-GB')
 }
 
+function filterWritingAttempts(
+  items: readonly WritingAttempt[],
+  taskFilter: HistoryTaskFilter,
+  typologyFilter: HistoryTypologyFilter,
+  bandFilter: WritingBandFilter,
+) {
+  return items.filter(
+    (a) =>
+      matchesTaskFilter(a.task, taskFilter) &&
+      matchesTypologyFilter(a.practiceTypology, typologyFilter) &&
+      matchesBandFilter(getAttemptBandScore(a.feedback), bandFilter),
+  )
+}
+
 export default function WritingHistoryPage() {
   const firebaseReady = isFirebaseConfigured()
   const configError = firebaseReady ? null : 'Firebase is not configured.'
@@ -31,6 +62,9 @@ export default function WritingHistoryPage() {
   const [items, setItems] = useState<WritingAttempt[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [loading, setLoading] = useState(firebaseReady)
+  const [taskFilter, setTaskFilter] = useState<HistoryTaskFilter>('all')
+  const [typologyFilter, setTypologyFilter] = useState<HistoryTypologyFilter>('all')
+  const [bandFilter, setBandFilter] = useState<WritingBandFilter>('all')
 
   useEffect(() => {
     if (!firebaseReady) {
@@ -60,6 +94,14 @@ export default function WritingHistoryPage() {
     }
   }, [firebaseReady])
 
+  const filteredItems = useMemo(
+    () => filterWritingAttempts(items, taskFilter, typologyFilter, bandFilter),
+    [items, taskFilter, typologyFilter, bandFilter],
+  )
+
+  const hasActiveFilters =
+    taskFilter !== 'all' || typologyFilter !== 'all' || bandFilter !== 'all'
+
   const error = configError ?? fetchError
 
   return (
@@ -83,14 +125,53 @@ export default function WritingHistoryPage() {
       ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
+      {!loading && !error && items.length > 0 ? (
+        <>
+          <HistoryAttemptFilters
+            taskFilter={taskFilter}
+            onTaskFilterChange={setTaskFilter}
+            taskOptions={WRITING_TASK_FILTER_OPTIONS}
+            typologyFilter={typologyFilter}
+            onTypologyFilterChange={setTypologyFilter}
+            bandFilter={bandFilter}
+            onBandFilterChange={setBandFilter}
+          />
+          <p className="text-xs text-muted-foreground">
+            Showing {String(filteredItems.length)} of {String(items.length)} attempt(s).
+          </p>
+        </>
+      ) : null}
+
       {!loading && !error && items.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No attempts yet. Complete a task from the Writing page.
         </p>
       ) : null}
 
+      {!loading && !error && items.length > 0 && filteredItems.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No attempts match these filters.
+          {hasActiveFilters ? (
+            <>
+              {' '}
+              <button
+                type="button"
+                className="cursor-pointer font-medium text-foreground underline-offset-4 hover:underline"
+                onClick={() => {
+                  setTaskFilter('all')
+                  setTypologyFilter('all')
+                  setBandFilter('all')
+                }}
+              >
+                Clear filters
+              </button>
+            </>
+          ) : null}
+        </p>
+      ) : null}
+
       <div className="flex flex-col gap-4">
-        {items.map((a) => (
+        {filteredItems.map((a) => (
           <Card key={a.id}>
             <CardHeader>
               <div className="flex flex-wrap items-start gap-2">
@@ -132,14 +213,9 @@ export default function WritingHistoryPage() {
                 </h3>
                 <p className="mt-1 whitespace-pre-wrap">{a.answer}</p>
               </section>
-              <section>
-                <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  Correction
-                </h3>
-                <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
-                  {a.feedback?.correction ?? '—'}
-                </p>
-              </section>
+              <HistoryCorrectionAccordion
+                correction={a.feedback?.correction ?? ''}
+              />
             </CardContent>
           </Card>
         ))}
