@@ -34,3 +34,9 @@ alla fine si prende un punteggio da 0 a 40 e il risultato finale dipende dalla s
 | 15-18             | 5          | B1      |
 | 13-14             | 4.5        | B1      |
 | 10-12             | 4          | -       |
+
+---
+
+References:
+- [bbc](https://www.bbc.com/)
+- [The Independent](https://www.independent.co.uk/)
