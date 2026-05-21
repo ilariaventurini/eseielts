@@ -31,7 +31,7 @@ I connettivi sono seguiti dalla virgola e servono a collegare le idee
 * **First / Firstly / First of all**: In primo luogo / Per prima cosa
 * **Second / Secondly**: In secondo luogo
 * **Third / Thirdly**: In terzo luogo
-* **Besides / Furthermore / In addition / Additionally / Moreover**: Inoltre / Oltre a ciò / In aggiunta
+* **Besides / Furthermore / In addition / Additionally / Moreover / What's more**: Inoltre / Oltre a ciò / In aggiunta
 * **Subsequently**: Successivamente / In seguito
 * **Last / Lastly**: In ultimo / Infine
 
