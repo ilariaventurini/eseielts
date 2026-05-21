@@ -11,7 +11,10 @@ import { writingDraftStorageKey } from '@/constants/storage.constants'
 import { TARGET_CEFR_LEVEL, WRITING_TASK_MIN_WORDS } from '@/constants/writing.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { cn } from '@/lib/utils'
-import { requestWritingFeedback } from '@/services/gemini-feedback.service'
+import {
+  requestWritingFeedback,
+  type GeminiRequestProgress,
+} from '@/services/gemini-feedback.service'
 import {
   createWritingAttempt,
   fetchWritingPromptsByTask,
@@ -36,6 +39,7 @@ export default function WritingPage() {
   const [feedback, setFeedback] = useState<GeminiFeedbackPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [requestProgress, setRequestProgress] = useState<GeminiRequestProgress | null>(null)
   const [availablePrompts, setAvailablePrompts] = useState<WritingPrompt[] | null>(null)
   const [promptsLoading, setPromptsLoading] = useState(false)
   const [promptsError, setPromptsError] = useState<string | null>(null)
@@ -138,19 +142,27 @@ export default function WritingPage() {
     }
     setError(null)
     setLoading(true)
+    setRequestProgress(null)
     const durationMs = Date.now() - startRef.current
     const wc = countWords(answer)
     try {
-      const { feedback: fb, rawText } = await requestWritingFeedback({
-        task: prompt.task,
-        promptTitle: prompt.title.length > 0 ? prompt.title : `Task ${String(prompt.task)}`,
-        promptBody: prompt.body,
-        promptImageUrl: prompt.imageUrl,
-        answer,
-        wordCount: wc,
-        durationMs,
-        targetLevel: TARGET_CEFR_LEVEL,
-      })
+      const { feedback: fb, rawText } = await requestWritingFeedback(
+        {
+          task: prompt.task,
+          promptTitle: prompt.title.length > 0 ? prompt.title : `Task ${String(prompt.task)}`,
+          promptBody: prompt.body,
+          promptImageUrl: prompt.imageUrl,
+          answer,
+          wordCount: wc,
+          durationMs,
+          targetLevel: TARGET_CEFR_LEVEL,
+        },
+        {
+          onProgress: (progress) => {
+            setRequestProgress(progress)
+          },
+        },
+      )
       if (firebaseReady) {
         await createWritingAttempt({
           promptId: prompt.id,
@@ -173,6 +185,7 @@ export default function WritingPage() {
       setError(e instanceof Error ? e.message : 'Feedback request failed')
     } finally {
       setLoading(false)
+      setRequestProgress(null)
     }
   }
 
@@ -188,6 +201,17 @@ export default function WritingPage() {
     startRef.current = null
     setError(null)
     setPracticeTypology(PRACTICE_TYPOLOGY_DEFAULT)
+    setRequestProgress(null)
+  }
+
+  function submitButtonLabel() {
+    if (!loading) {
+      return 'Submit for feedback'
+    }
+    if (requestProgress === null) {
+      return 'Sending to Gemini…'
+    }
+    return `Tentativo ${String(requestProgress.attempt)}/${String(requestProgress.maxAttempts)} · ${requestProgress.modelName}`
   }
 
   return (
@@ -365,10 +389,10 @@ export default function WritingPage() {
               {loading ? (
                 <>
                   <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                  Sending to Gemini…
+                  {submitButtonLabel()}
                 </>
               ) : (
-                'Submit for feedback'
+                submitButtonLabel()
               )}
             </Button>
             <Button

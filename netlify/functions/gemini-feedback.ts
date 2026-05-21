@@ -4,6 +4,7 @@ import {
 } from '@google/generative-ai'
 import type { GenerateContentResult, Part } from '@google/generative-ai'
 import type { Handler } from '@netlify/functions'
+import { AVAILABLE_GEMINI_MODELS } from '../../src/constants/app.constants'
 import { z } from 'zod'
 
 const httpsImageUrlSchema = z
@@ -20,6 +21,8 @@ const requestSchema = z.object({
   wordCount: z.number().int().nonnegative(),
   durationMs: z.number().int().nonnegative(),
   targetLevel: z.string().min(1),
+  modelName: z.string().min(1).optional(),
+  retryMaxAttempts: z.number().int().min(1).max(8).optional(),
 })
 
 const feedbackSchema = z.object({
@@ -125,7 +128,10 @@ const GEMINI_RETRY_DEFAULT_ATTEMPTS = 3
 const GEMINI_RETRY_MIN_REMAINING_MS =
   LAMBDA_FINISH_BUFFER_MS + MIN_GEMINI_BUDGET_MS + 1200
 
-function parseGeminiRetryMaxAttempts(): number {
+function parseGeminiRetryMaxAttempts(override?: number): number {
+  if (override !== undefined) {
+    return Math.min(8, Math.max(1, override))
+  }
   const raw = process.env.GEMINI_RETRY_MAX_ATTEMPTS
   if (raw === undefined || raw.trim() === '') {
     return GEMINI_RETRY_DEFAULT_ATTEMPTS
@@ -135,6 +141,13 @@ function parseGeminiRetryMaxAttempts(): number {
     return GEMINI_RETRY_DEFAULT_ATTEMPTS
   }
   return Math.min(8, n)
+}
+
+function selectGeminiModel(modelName: string | undefined) {
+  if (modelName !== undefined && AVAILABLE_GEMINI_MODELS.includes(modelName)) {
+    return modelName
+  }
+  return AVAILABLE_GEMINI_MODELS[0]
 }
 
 function parseGeminiMaxOutputTokens() {
@@ -297,7 +310,7 @@ export const handler: Handler = async (event, context) => {
   }
 
   const input = parsed.data
-  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'
+  const modelName = selectGeminiModel(input.modelName)
 
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
@@ -339,7 +352,7 @@ ${input.answer}`
     }
     parts.push({ text: userContent })
 
-    const maxAttempts = parseGeminiRetryMaxAttempts()
+    const maxAttempts = parseGeminiRetryMaxAttempts(input.retryMaxAttempts)
     const result = await invokeGeminiWithRetries(
       () => {
         const geminiBudget = Math.max(
@@ -361,7 +374,7 @@ ${input.answer}`
     return {
       statusCode: 200,
       headers: jsonHeaders,
-      body: JSON.stringify({ feedback, rawModelText: text }),
+      body: JSON.stringify({ feedback, rawModelText: text, modelName }),
     }
   } catch (err) {
     let message = err instanceof Error ? err.message : 'Gemini error'
