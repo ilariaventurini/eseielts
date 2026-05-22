@@ -85,3 +85,53 @@ alla fine si prende un punteggio da 0 a 40 e il risultato finale dipende dalla s
 | 13-15             | 4.5        | B1      |
 | 11-12             | 4          |         |
 
+## Spelling
+
+| Chart    |          |            |
+| :------- | :------- | :--------- |
+| A - ei   | J - gei  | S - es     |
+| B - bi   | K - chei | T - t      |
+| C - si   | L - el   | U - iu     |
+| D - di   | M - em   | V - v      |
+| E - i    | N - en   | W - dabliu |
+| F - ef   | O - ou   | X - ex     |
+| G - g    | P - p    | Y - uai    |
+| H - eich | Q - chiu | Z - zed    |
+| I - ai   | R - ar   |            |
+
+| number    | cardinal                                      | ordinal                     |
+| :-------- | :-------------------------------------------- | :-------------------------- |
+| 1         | one                                           | first                       |
+| 2         | two                                           | second                      |
+| 3         | three                                         | third                       |
+| 4         | four                                          | fourth                      |
+| 5         | five                                          | fifth                       |
+| 6         | six                                           | sixth                       |
+| 7         | seven                                         | seventh                     |
+| 8         | eight                                         | eighth                      |
+| 9         | nine                                          | ninth                       |
+| 10        | ten                                           | tenth                       |
+| 11        | eleven                                        | eleventh                    |
+| 12        | twelve                                        | twelfth                     |
+| 13        | thirteen                                      | thirteenth                  |
+| 14        | fourteen                                      | fourteenth                  |
+| 15        | fifteen                                       | fifteenth                   |
+| 16        | sixteen                                       | sixteenth                   |
+| 17        | seventeen                                     | seventeenth                 |
+| 18        | eighteen                                      | eighteenth                  |
+| 19        | nineteen                                      | nineteenth                  |
+| 20        | twenty                                        | twentieth                   |
+| 21        | twenty-one                                    | twenty-first                |
+| 30        | thirty                                        | thirtieth                   |
+| 40        | forty                                         | fortieth                    |
+| 50        | fifty                                         | fiftieth                    |
+| 60        | sixty                                         | sixtieth                    |
+| 70        | seventy                                       | seventieth                  |
+| 80        | eighty                                        | eightieth                   |
+| 90        | ninety                                        | ninetieth                   |
+| 100       | one hundred                                   | hundredth                   |
+| 500       | five hundred                                  | five hundredth              |
+| 1'000     | one thousand                                  | thousandth                  |
+| 1'500     | one thousand five hundred, or fifteen hundred | one thousand five hundredth |
+| 100'000   | one hundred thousand                          | hundred thousandth          |
+| 1'000'000 | one million                                   | millionth                   |
