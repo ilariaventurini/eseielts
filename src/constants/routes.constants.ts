@@ -45,6 +45,7 @@ export const ROUTES = {
   writingExercises: '/writing/exercises',
   writingHistory: '/writing/history',
   writingBackoffice: '/writing/backoffice',
+  helpDocsBackoffice: '/backoffice/help-docs',
   listeningExercises: skillExercisesPath('listening'),
   readingExercises: skillExercisesPath('reading'),
   speaking: '/speaking',
@@ -58,4 +59,5 @@ export type RouteKey = keyof typeof ROUTES
 export const ROUTE_SEGMENTS = {
   signIn: 'sign-in',
   legacyBackoffice: 'backoffice',
+  helpDocsBackoffice: 'backoffice/help-docs',
 } as const

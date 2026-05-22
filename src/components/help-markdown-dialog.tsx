@@ -1,5 +1,6 @@
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router'
 
 import { StudyHelpMarkdown } from '@/components/study-help-markdown'
 import { Button } from '@/components/ui/button'
@@ -11,24 +12,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  IELTS_LISTENING_TAB_MARKDOWN,
-  IELTS_READING_TAB_MARKDOWN,
-  IELTS_SPEAKING_TAB_MARKDOWN,
-  IELTS_WRITING_STUDY_TIPS_TAB_MARKDOWN,
-  IELTS_WRITING_TAB_MARKDOWN,
-} from '@/constants/writing-help.markdown'
+import { ROUTES } from '@/constants/routes.constants'
+import { useHelpMarkdownTabs } from '@/hooks/use-help-markdown-tabs'
 import { cn } from '@/lib/utils'
-
-export interface HelpMarkdownTab {
-  readonly value: string
-  readonly label: string
-  readonly markdown: string
-}
 
 export interface HelpMarkdownDialogProps {
   readonly triggerAriaLabel: string
-  readonly tabs: readonly HelpMarkdownTab[]
   readonly defaultTab?: string
   readonly dialogDescription?: string
   /** Shown only to assistive tech (required dialog label). */
@@ -37,21 +26,22 @@ export interface HelpMarkdownDialogProps {
 
 export function HelpMarkdownDialog({
   triggerAriaLabel,
-  tabs,
-  defaultTab,
+  defaultTab = 'study-tips',
   dialogDescription = 'Tabbed help content. Use the tab list to switch sections.',
   dialogAccessibleName = 'Help documentation',
 }: HelpMarkdownDialogProps) {
-  const fallbackFirst = tabs[0]?.value ?? ''
-  const resolvedDefault = defaultTab ?? fallbackFirst
+  const { tabs, loading, error, reload } = useHelpMarkdownTabs()
   const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState(resolvedDefault)
+  const [activeTab, setActiveTab] = useState(defaultTab)
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen)
-    if (!nextOpen) {
-      setActiveTab(resolvedDefault)
+    if (nextOpen) {
+      void reload()
+      setActiveTab(defaultTab)
+      return
     }
+    setActiveTab(defaultTab)
   }
 
   if (tabs.length === 0) {
@@ -83,17 +73,38 @@ export function HelpMarkdownDialog({
           onValueChange={setActiveTab}
           className="text-foreground flex min-h-0 min-w-0 flex-1 flex-col"
         >
-          <div className="flex shrink-0 items-center border-b px-4 py-2.5 pr-14 sm:px-6">
-            <TabsList
-              aria-label="Help sections"
-              className="min-w-0 flex-1 sm:flex-initial sm:w-auto"
-            >
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.value} value={tab.value}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          <div className="flex shrink-0 flex-col gap-2 border-b px-4 py-2.5 pr-14 sm:px-6">
+            <div className="flex min-w-0 items-center gap-2">
+              <TabsList
+                aria-label="Help sections"
+                className="min-w-0 flex-1 sm:flex-initial sm:w-auto"
+              >
+                {tabs.map((tab) => (
+                  <TabsTrigger key={tab.value} value={tab.value}>
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              <Link
+                to={ROUTES.helpDocsBackoffice}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Edit help docs
+              </Link>
+              {loading ? (
+                <span className="inline-flex items-center gap-1.5 pl-2">
+                  <Loader2 className="size-3 animate-spin" aria-hidden />
+                  Loading…
+                </span>
+              ) : null}
+              {error ? (
+                <span className="pl-2 text-destructive" role="alert">
+                  {error} (showing bundled defaults)
+                </span>
+              ) : null}
+            </p>
           </div>
           {tabs.map((tab) => (
             <TabsContent
@@ -102,7 +113,18 @@ export function HelpMarkdownDialog({
               className="data-[state=inactive]:hidden m-0 flex min-h-0 flex-1 flex-col overflow-hidden outline-none"
             >
               <div className="text-foreground min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-4">
-                <StudyHelpMarkdown markdown={tab.markdown} />
+                {loading ? (
+                  <div
+                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                    Loading help content…
+                  </div>
+                ) : (
+                  <StudyHelpMarkdown markdown={tab.markdown} />
+                )}
               </div>
             </TabsContent>
           ))}
@@ -112,39 +134,10 @@ export function HelpMarkdownDialog({
   )
 }
 
-const IELTS_HELP_TABS: readonly HelpMarkdownTab[] = [
-  {
-    value: 'study-tips',
-    label: 'Study tips',
-    markdown: IELTS_WRITING_STUDY_TIPS_TAB_MARKDOWN,
-  },
-  {
-    value: 'ielts-listening',
-    label: '1. IELTS Listening',
-    markdown: IELTS_LISTENING_TAB_MARKDOWN,
-  },
-  {
-    value: 'ielts-reading',
-    label: '2. IELTS Reading',
-    markdown: IELTS_READING_TAB_MARKDOWN,
-  },
-  {
-    value: 'ielts-writing',
-    label: '3. IELTS Writing',
-    markdown: IELTS_WRITING_TAB_MARKDOWN,
-  },
-  {
-    value: 'ielts-speaking',
-    label: '4. IELTS Speaking',
-    markdown: IELTS_SPEAKING_TAB_MARKDOWN,
-  },
-]
-
 export function HelpDialog() {
   return (
     <HelpMarkdownDialog
       triggerAriaLabel="Open IELTS help (study tips and section guides)"
-      tabs={IELTS_HELP_TABS}
       defaultTab="study-tips"
       dialogAccessibleName="IELTS help"
       dialogDescription="IELTS help: study tips and guides for Listening, Reading, Writing, and Speaking."

@@ -1,7 +1,8 @@
 import { Link } from 'react-router'
 
+import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { IELTS_SKILLS, skillRootPath, type IeltsSkill } from '@/constants/routes.constants'
+import { IELTS_SKILLS, ROUTES, skillRootPath, type IeltsSkill } from '@/constants/routes.constants'
 import { cn } from '@/lib/utils'
 
 function skillTitle(skill: IeltsSkill) {
@@ -41,6 +42,11 @@ export default function HomePage() {
           (where available). Writing is fully interactive today; the other papers ship practice over
           time while you can still seed content and read the static guides.
         </p>
+        <div className="mt-4">
+          <Button asChild variant="outline" size="sm" className="cursor-pointer">
+            <Link to={ROUTES.helpDocsBackoffice}>Help docs backoffice</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

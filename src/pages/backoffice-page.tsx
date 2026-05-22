@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { skillPromptsLibraryPath } from '@/constants/routes.constants'
+import { ROUTES, skillPromptsLibraryPath } from '@/constants/routes.constants'
 import { useAuth } from '@/hooks/use-auth'
 import {
   isFirebaseConfigured,
@@ -151,6 +151,13 @@ export default function BackofficePage() {
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             Prompts library
+          </Link>
+          . Edit IELTS help markdown (header book icon) in the{' '}
+          <Link
+            to={ROUTES.helpDocsBackoffice}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Help docs backoffice
           </Link>
           .
         </p>

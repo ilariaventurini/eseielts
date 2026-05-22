@@ -6,4 +6,5 @@ export const FIRESTORE_COLLECTIONS = {
   speakingContent: 'speakingContent',
   speakingPrompts: 'speakingPrompts',
   speakingAttempts: 'speakingAttempts',
+  helpDocs: 'helpDocs',
 } as const
