@@ -1,10 +1,10 @@
-import {
-  GoogleGenerativeAI,
-  GoogleGenerativeAIFetchError,
-} from '@google/generative-ai'
+import { GoogleGenerativeAI, GoogleGenerativeAIFetchError } from '@google/generative-ai'
 import type { GenerateContentResult, Part } from '@google/generative-ai'
 import type { Handler } from '@netlify/functions'
-import { AVAILABLE_GEMINI_MODELS } from '../../src/constants/app.constants'
+import {
+  AVAILABLE_GEMINI_MODELS,
+  isGeminiModelId,
+} from '../../src/constants/app.constants'
 import { z } from 'zod'
 
 const httpsImageUrlSchema = z
@@ -58,7 +58,7 @@ function assertGenerationNotTruncated(result: GenerateContentResult) {
   const fr = result.response.candidates?.[0]?.finishReason
   if (fr === 'MAX_TOKENS') {
     throw new Error(
-      'Gemini hit the output token limit (response truncated before completion). Increase GEMINI_MAX_OUTPUT_TOKENS on the Netlify function (e.g. 8192 or 16384), redeploy, then try again.',
+      'Gemini hit the output token limit (response truncated before completion). Increase GEMINI_MAX_OUTPUT_TOKENS on the Netlify function (e.g. 8192 or 16384), redeploy, then try again.'
     )
   }
 }
@@ -125,8 +125,7 @@ const MIN_GEMINI_BUDGET_MS = 8000
 const IMAGE_FETCH_MAX_MS = 14_000
 const LAMBDA_FINISH_BUFFER_MS = 1200
 const GEMINI_RETRY_DEFAULT_ATTEMPTS = 3
-const GEMINI_RETRY_MIN_REMAINING_MS =
-  LAMBDA_FINISH_BUFFER_MS + MIN_GEMINI_BUDGET_MS + 1200
+const GEMINI_RETRY_MIN_REMAINING_MS = LAMBDA_FINISH_BUFFER_MS + MIN_GEMINI_BUDGET_MS + 1200
 
 function parseGeminiRetryMaxAttempts(override?: number): number {
   if (override !== undefined) {
@@ -144,7 +143,7 @@ function parseGeminiRetryMaxAttempts(override?: number): number {
 }
 
 function selectGeminiModel(modelName: string | undefined) {
-  if (modelName !== undefined && AVAILABLE_GEMINI_MODELS.includes(modelName)) {
+  if (modelName !== undefined && isGeminiModelId(modelName)) {
     return modelName
   }
   return AVAILABLE_GEMINI_MODELS[0]
@@ -164,12 +163,7 @@ function parseGeminiMaxOutputTokens() {
 
 function isRetryableGeminiError(err: unknown): boolean {
   if (err instanceof GoogleGenerativeAIFetchError) {
-    return (
-      err.status === 429 ||
-      err.status === 500 ||
-      err.status === 502 ||
-      err.status === 503
-    )
+    return err.status === 429 || err.status === 500 || err.status === 502 || err.status === 503
   }
   if (err instanceof Error) {
     const m = err.message
@@ -197,7 +191,7 @@ function sleepMs(ms: number): Promise<void> {
 async function invokeGeminiWithRetries(
   invoke: () => Promise<GenerateContentResult>,
   maxAttempts: number,
-  getRemainingMs: () => number,
+  getRemainingMs: () => number
 ): Promise<GenerateContentResult> {
   let attempt = 0
   while (attempt < maxAttempts) {
@@ -211,11 +205,7 @@ async function invokeGeminiWithRetries(
       const backoffBase = 700 * 2 ** (attempt - 1)
       const jitter = Math.floor(Math.random() * 450)
       const backoff = Math.min(12_000, backoffBase + jitter)
-      if (
-        !attemptsLeft ||
-        !retryable ||
-        remaining <= GEMINI_RETRY_MIN_REMAINING_MS + backoff
-      ) {
+      if (!attemptsLeft || !retryable || remaining <= GEMINI_RETRY_MIN_REMAINING_MS + backoff) {
         throw err
       }
       await sleepMs(backoff)
@@ -255,9 +245,7 @@ async function fetchImagePart(url: string, fetchTimeoutMs: number): Promise<Part
   }
   const rawMime = res.headers.get('content-type')?.split(';')[0]?.trim()
   const mimeType =
-    rawMime !== undefined &&
-    rawMime.length > 0 &&
-    rawMime.toLowerCase().startsWith('image/')
+    rawMime !== undefined && rawMime.length > 0 && rawMime.toLowerCase().startsWith('image/')
       ? rawMime
       : 'image/png'
   const data = Buffer.from(arrayBuffer).toString('base64')
@@ -332,8 +320,7 @@ ${input.answer}`
 
   try {
     const imageUrl =
-      typeof input.promptImageUrl === 'string' &&
-      input.promptImageUrl.trim().length > 0
+      typeof input.promptImageUrl === 'string' && input.promptImageUrl.trim().length > 0
         ? input.promptImageUrl.trim()
         : null
 
@@ -342,7 +329,7 @@ ${input.answer}`
       const remainingAfterImage = context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS
       const imageFetchMs = Math.min(
         IMAGE_FETCH_MAX_MS,
-        Math.max(3000, Math.floor(remainingAfterImage * 0.3)),
+        Math.max(3000, Math.floor(remainingAfterImage * 0.3))
       )
       const imagePart = await fetchImagePart(imageUrl, imageFetchMs)
       parts.push({
@@ -357,16 +344,12 @@ ${input.answer}`
       () => {
         const geminiBudget = Math.max(
           MIN_GEMINI_BUDGET_MS,
-          context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS,
+          context.getRemainingTimeInMillis() - LAMBDA_FINISH_BUFFER_MS
         )
-        return withTimeout(
-          model.generateContent(parts),
-          geminiBudget,
-          'Gemini request',
-        )
+        return withTimeout(model.generateContent(parts), geminiBudget, 'Gemini request')
       },
       maxAttempts,
-      () => context.getRemainingTimeInMillis(),
+      () => context.getRemainingTimeInMillis()
     )
     const text = result.response.text()
     const feedbackUnknown = parseFeedbackPayloadJson(result, text)
@@ -382,10 +365,7 @@ ${input.answer}`
       message =
         'Downloading the Task 1 image took too long. Try again, or use a smaller or faster-hosted image URL.'
     }
-    if (
-      message.includes('timed out') ||
-      message.includes('no time left before function timeout')
-    ) {
+    if (message.includes('timed out') || message.includes('no time left before function timeout')) {
       message = `${message} Mitigations: raise the synchronous function timeout in the Netlify UI (then redeploy) and ensure netlify.toml matches your plan; netlify dev often simulates ~30s unless you run netlify link; try GEMINI_MODEL=gemini-2.0-flash for faster responses, or GEMINI_MAX_OUTPUT_TOKENS=16384 if the model JSON was truncated.`
     }
     if (

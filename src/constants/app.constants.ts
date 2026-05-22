@@ -14,4 +14,10 @@ export const AVAILABLE_GEMINI_MODELS = [
   'gemini-3.1-pro-preview',
 ] as const
 
+export type GeminiModelId = (typeof AVAILABLE_GEMINI_MODELS)[number]
+
+export function isGeminiModelId(value: string): value is GeminiModelId {
+  return (AVAILABLE_GEMINI_MODELS as readonly string[]).includes(value)
+}
+
 export const GEMINI_RETRY_MAX_ATTEMPTS = 4
