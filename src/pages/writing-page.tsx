@@ -20,10 +20,7 @@ import {
   fetchWritingPromptsByTask,
 } from '@/services/writing-firestore.service'
 import type { GeminiFeedbackPayload } from '@/types/gemini.types'
-import {
-  PRACTICE_TYPOLOGY_DEFAULT,
-  type PracticeTypology,
-} from '@/types/practice-typology.types'
+import { PRACTICE_TYPOLOGY_DEFAULT, type PracticeTypology } from '@/types/practice-typology.types'
 import type { WritingPrompt, WritingTask } from '@/types/writing.types'
 import { formatClockSeconds } from '@/utils/format-duration.utils'
 import { countWords, paragraphWordCounts } from '@/utils/word-count.utils'
@@ -43,9 +40,8 @@ export default function WritingPage() {
   const [availablePrompts, setAvailablePrompts] = useState<WritingPrompt[] | null>(null)
   const [promptsLoading, setPromptsLoading] = useState(false)
   const [promptsError, setPromptsError] = useState<string | null>(null)
-  const [practiceTypology, setPracticeTypology] = useState<PracticeTypology>(
-    PRACTICE_TYPOLOGY_DEFAULT,
-  )
+  const [practiceTypology, setPracticeTypology] =
+    useState<PracticeTypology>(PRACTICE_TYPOLOGY_DEFAULT)
 
   const startRef = useRef<number | null>(null)
   const firebaseReady = isFirebaseConfigured()
@@ -161,7 +157,7 @@ export default function WritingPage() {
           onProgress: (progress) => {
             setRequestProgress(progress)
           },
-        },
+        }
       )
       if (firebaseReady) {
         await createWritingAttempt({
@@ -405,21 +401,7 @@ export default function WritingPage() {
               Cancel session
             </Button>
           </div>
-          {error ? (
-            <p className="text-sm text-destructive">{error}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Feedback uses the Netlify function{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">gemini-feedback</code>.
-              Locally, use{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">yarn dev:netlify</code> and
-              open the app on the port Netlify shows (not plain{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">yarn dev</code>
-              ), or set{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">VITE_GEMINI_FEEDBACK_URL</code>
-              .
-            </p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
       ) : null}
 
