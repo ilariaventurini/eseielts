@@ -17,6 +17,28 @@ Si divide in 3 sezioni (l'esaminatore avvisa) di circa 5min ciascuna:
 3. domande dirette astratte e complesse. non domande su di voi ma su società, chiede opinioni su qualcosa. meno domande ma più lunghe
    - *in your opinion is food important a culture of a country?*
 
+## Task 1
+- task: A series of different questions about yourself
+- duration: This part lasts 5–6 minutes
+- structure: You will be asked around 10 questions across three different topics
+
+strategies:
+
+1. **give a reason**: *because, as, in fact, therefore, and that's why, due to the fact that...*
+2. **express a preference**: *actually, i'd rather, i'd prefer, i prefer... than/to...*
+3. **say how often (talk about the present)**: *once a/per, twice a/per, three times a/per, each, every... day, week, month, year; daily, weekly, monthly, yearly*
+4. **talk about future plans**: *i am about to..., i hope i will..., i'm going to... next year, next summer, next tuesday, in a year from now, by the end of next month*
+5. **bring a story from the past (talk about the past)**: *past simple + [time] ago, last year, when i was younger; present perfect + for/since or no time*
+6. **show a contrast**: *however, although, but, despite the fact that, even if, even though*
+7. **use an example**: *for example, for instance, such as, like*
+8. **add more information**: *relatives (which, that, who, whose, where...), with, in addition, plus*
+
+## Task 2
+TBD
+
+## Task 3
+TBD
+
 ## Come si viene valutati?
 ci sono 4 criteri di valutazione:
 
