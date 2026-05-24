@@ -1,12 +1,14 @@
 import {
   addDoc,
   collection,
+  doc,
   getDocs,
   limit,
   orderBy,
   query,
   serverTimestamp,
   where,
+  writeBatch,
   type DocumentData,
 } from 'firebase/firestore'
 
@@ -59,6 +61,8 @@ function mapSpeakingAttempt(id: string, data: DocumentData): SpeakingAttempt {
   }
 }
 
+const SPEAKING_PROMPT_BATCH_SIZE = 500
+
 export async function createSpeakingPrompts(
   items: readonly {
     task: SpeakingTask
@@ -72,17 +76,21 @@ export async function createSpeakingPrompts(
     throw new Error('Firebase is not configured.')
   }
   const col = collection(db, FIRESTORE_COLLECTIONS.speakingPrompts)
-  await Promise.all(
-    items.map((item) =>
-      addDoc(col, {
+
+  for (let offset = 0; offset < items.length; offset += SPEAKING_PROMPT_BATCH_SIZE) {
+    const chunk = items.slice(offset, offset + SPEAKING_PROMPT_BATCH_SIZE)
+    const batch = writeBatch(db)
+    chunk.forEach((item) => {
+      batch.set(doc(col), {
         task: item.task,
         title: item.title,
         body: item.body,
         practiceTypology: item.practiceTypology,
         createdAt: serverTimestamp(),
-      }),
-    ),
-  )
+      })
+    })
+    await batch.commit()
+  }
 }
 
 /** All speaking prompts in Firestore, newest first (by `createdAt` when present). */
