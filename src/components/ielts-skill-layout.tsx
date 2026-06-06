@@ -1,6 +1,5 @@
 import { Link, Outlet, useLocation, useParams } from 'react-router'
 
-import { Button } from '@/components/ui/button'
 import { isIeltsSkill, skillRootPath, type IeltsSkill } from '@/constants/routes.constants'
 import NotFoundPage from '@/pages/not-found-page'
 
@@ -33,12 +32,15 @@ export function IeltsSkillLayout() {
   const isHub = normalizedPath === hubPath
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {!isHub ? (
         <div>
-          <Button asChild variant="ghost" size="sm" className="cursor-pointer px-0">
-            <Link to={hubPath}>← {skillOverviewLabel(skill)} overview</Link>
-          </Button>
+          <Link
+            to={hubPath}
+            className="text-sm text-foreground underline underline-offset-4 hover:text-foreground/80"
+          >
+            ← {skillOverviewLabel(skill)} overview
+          </Link>
         </div>
       ) : null}
       <Outlet />

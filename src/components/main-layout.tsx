@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react'
-import { Link, NavLink, Outlet } from 'react-router'
+import { NavLink, Outlet } from 'react-router'
 
+import { AppLogo } from '@/components/app-logo'
 import { AuthToolbar } from '@/components/auth-toolbar'
 import { HelpDialog } from '@/components/help-markdown-dialog'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Button } from '@/components/ui/button'
-import { buttonVariants } from '@/components/ui/button-variants'
 import {
   IELTS_SKILLS,
   ROUTES,
@@ -42,11 +41,10 @@ function ShellNavLink({
       end={end}
       className={({ isActive }) =>
         cn(
-          buttonVariants({ variant: 'ghost', size: 'sm' }),
-          'cursor-pointer px-2',
+          'label-caps cursor-pointer border-b-2 border-transparent px-0 py-1 transition-colors',
           isActive
-            ? 'bg-accent text-accent-foreground'
-            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+            ? 'border-accent-highlight text-accent-highlight'
+            : 'text-muted-foreground hover:text-foreground',
         )
       }
     >
@@ -55,21 +53,42 @@ function ShellNavLink({
   )
 }
 
+function HomeNavLink() {
+  return (
+    <NavLink
+      to={ROUTES.home}
+      end
+      aria-label="Home"
+      className={({ isActive }) =>
+        cn(
+          'inline-flex cursor-pointer border-b-2 border-transparent p-0.5 transition-colors',
+          isActive
+            ? 'border-accent-highlight'
+            : 'text-muted-foreground hover:text-foreground',
+        )
+      }
+    >
+      <AppLogo className="size-4" />
+    </NavLink>
+  )
+}
+
 export function MainLayout() {
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
-      <header className="border-b bg-card/80 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-1">
-            <Button asChild variant="ghost" size="sm" className="cursor-pointer font-semibold">
-              <Link to={ROUTES.home}>⌂</Link>
-            </Button>
+      <header className="border-b">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <nav
+            className="flex flex-wrap items-center gap-x-3 gap-y-1"
+            aria-label="Main navigation"
+          >
+            <HomeNavLink />
             {IELTS_SKILLS.map((skill) => (
               <ShellNavLink key={skill} to={skillRootPath(skill)} end={false}>
                 {skillNavLabel(skill)}
               </ShellNavLink>
             ))}
-          </div>
+          </nav>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <AuthToolbar />
             <HelpDialog />
@@ -77,7 +96,7 @@ export function MainLayout() {
           </div>
         </div>
       </header>
-      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-5">
         <Outlet />
       </div>
     </div>

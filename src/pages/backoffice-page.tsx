@@ -139,7 +139,7 @@ export default function BackofficePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Backoffice</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -148,14 +148,14 @@ export default function BackofficePage() {
           rows share the selected task. Browse saved prompts in{' '}
           <Link
             to={skillPromptsLibraryPath('writing')}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
           >
             Prompts library
           </Link>
           . Edit IELTS help markdown (header book icon) in the{' '}
           <Link
             to={ROUTES.helpDocsBackoffice}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
           >
             Help docs backoffice
           </Link>
@@ -218,7 +218,7 @@ export default function BackofficePage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col gap-6">
+        <CardContent className="flex flex-col gap-4">
           {rows.map((row, index) => (
             <div
               key={row.id}

@@ -44,7 +44,7 @@ export default function SectionComingSoonPage({
       : 'A timeline of your attempts for this paper will appear here once practice launches. Writing history is available today.'
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{heading}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>

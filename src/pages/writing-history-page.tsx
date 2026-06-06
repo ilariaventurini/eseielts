@@ -105,7 +105,7 @@ export default function WritingHistoryPage() {
   const error = configError ?? fetchError
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -186,7 +186,9 @@ export default function WritingHistoryPage() {
               <CardDescription>
                 {formatWhen(a)} · {String(a.wordCount)} words ·{' '}
                 {formatClockSeconds(Math.floor(a.durationMs / 1000))} · band{' '}
-                {String(a.feedback?.band ?? '—')}
+                <span className="font-medium text-accent-highlight">
+                  {String(a.feedback?.band ?? '—')}
+                </span>
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 text-sm">
@@ -198,7 +200,7 @@ export default function WritingHistoryPage() {
                   {a.promptBody}
                 </p>
                 {a.promptImageUrl ? (
-                  <figure className="mt-3 overflow-hidden rounded-md border bg-muted">
+                  <figure className="mt-3 overflow-hidden rounded-sm border bg-muted">
                     <img
                       src={a.promptImageUrl}
                       alt={`${a.promptTitle} (Task 1 visual)`}

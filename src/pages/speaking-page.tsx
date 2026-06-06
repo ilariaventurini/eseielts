@@ -290,7 +290,7 @@ export default function SpeakingPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Speaking</h1>
         <Button asChild variant="outline" size="sm" className="cursor-pointer">
@@ -363,8 +363,8 @@ export default function SpeakingPage() {
                         type="button"
                         onClick={() => startWithPrompt(p)}
                         className={cn(
-                          'group flex w-full cursor-pointer items-start gap-3 rounded-md border border-border bg-card p-3 text-left text-sm shadow-sm transition-colors',
-                          'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                          'group flex w-full cursor-pointer items-start gap-3 rounded-sm border border-border bg-card p-2.5 text-left text-sm transition-colors',
+                          'hover:border-foreground/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                         )}
                         aria-label={`Start exercise: ${label}`}
                       >
@@ -399,7 +399,7 @@ export default function SpeakingPage() {
             <button
               type="button"
               className={cn(
-                'relative min-w-0 flex-1 overflow-hidden rounded-md border p-4 text-left text-sm shadow-none',
+                'relative min-w-0 flex-1 overflow-hidden rounded-sm border p-3 text-left text-sm',
                 'cursor-pointer transition-[transform,colors] duration-150 ease-out active:scale-[0.98]',
                 'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                 firstMinutePassed
@@ -448,7 +448,7 @@ export default function SpeakingPage() {
             <button
               type="button"
               className={cn(
-                'relative min-w-0 flex-1 overflow-hidden rounded-md border p-4 text-left text-sm shadow-none',
+                'relative min-w-0 flex-1 overflow-hidden rounded-sm border p-3 text-left text-sm',
                 'cursor-pointer transition-[transform,colors] duration-150 ease-out active:scale-[0.98]',
                 'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                 extendedGreenReached

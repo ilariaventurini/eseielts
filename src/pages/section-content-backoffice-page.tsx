@@ -113,7 +113,7 @@ export default function SectionContentBackofficePage({
   }
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {label} backoffice
@@ -251,7 +251,7 @@ export default function SectionContentBackofficePage({
               {(items ?? []).map((item) => (
                 <li
                   key={item.id}
-                  className="rounded-md border border-border bg-card p-3 text-sm shadow-sm"
+                  className="rounded-sm border border-border bg-card p-2.5 text-sm"
                 >
                   <p className="break-all font-mono text-[11px] text-muted-foreground">
                     id: {item.id}

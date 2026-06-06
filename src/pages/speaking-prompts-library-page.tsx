@@ -19,12 +19,9 @@ import type { SpeakingPrompt, SpeakingTask } from '@/types/speaking.types'
 
 function taskBadgeClass(task: SpeakingTask) {
   if (task === 1) {
-    return 'bg-primary/15 text-primary'
+    return 'border-accent-highlight/30 bg-muted text-accent-highlight'
   }
-  if (task === 2) {
-    return 'bg-muted text-foreground'
-  }
-  return 'bg-secondary text-secondary-foreground'
+  return 'border-border bg-muted text-muted-foreground'
 }
 
 export default function SpeakingPromptsLibraryPage() {
@@ -71,7 +68,7 @@ export default function SpeakingPromptsLibraryPage() {
         )
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Prompts library</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -79,7 +76,7 @@ export default function SpeakingPromptsLibraryPage() {
           in{' '}
           <Link
             to={skillBackofficePath('speaking')}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
           >
             Backoffice
           </Link>
@@ -164,7 +161,7 @@ export default function SpeakingPromptsLibraryPage() {
                 No prompts yet. Add some in{' '}
                 <Link
                   to={skillBackofficePath('speaking')}
-                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
                 >
                   Backoffice
                 </Link>
@@ -187,14 +184,14 @@ export default function SpeakingPromptsLibraryPage() {
               {filteredLibrary.map((p) => (
                 <li
                   key={p.id}
-                  className="rounded-md border border-border bg-card p-3 text-sm shadow-sm"
+                  className="rounded-sm border border-border bg-card p-2.5 text-sm"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
                           className={cn(
-                            'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
+                            'inline-flex rounded-sm border px-2 py-0.5 text-xs font-medium',
                             taskBadgeClass(p.task),
                           )}
                         >

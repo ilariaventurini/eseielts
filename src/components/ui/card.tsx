@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 function Card({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      className={cn('rounded-xl border bg-card text-card-foreground shadow', className)}
+      className={cn('rounded-sm border bg-card text-card-foreground', className)}
       data-slot="card"
       {...props}
     />
@@ -15,7 +15,7 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
 function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      className={cn('flex flex-col gap-1.5 p-3', className)}
+      className={cn('flex flex-col gap-1.5 p-2.5', className)}
       data-slot="card-header"
       {...props}
     />
@@ -43,13 +43,13 @@ function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div className={cn('p-3 pt-0 md:pt-0', className)} data-slot="card-content" {...props} />
+  return <div className={cn('p-2.5 pt-0 md:pt-0', className)} data-slot="card-content" {...props} />
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
-      className={cn('flex items-center p-6 pt-0', className)}
+      className={cn('flex items-center p-2.5 pt-0', className)}
       data-slot="card-footer"
       {...props}
     />

@@ -36,10 +36,10 @@ export function PracticeTypologyPicker({
             variant="ghost"
             size="sm"
             className={cn(
-              'h-7 cursor-pointer px-2 text-xs font-normal shadow-none',
+              'h-7 cursor-pointer px-2 text-xs font-normal',
               isSelected
-                ? 'text-foreground/80 underline decoration-muted-foreground/60 underline-offset-4 hover:bg-transparent hover:text-foreground/80'
-                : 'text-muted-foreground/75 hover:bg-transparent hover:text-muted-foreground',
+                ? 'border border-foreground text-foreground hover:bg-transparent hover:text-foreground'
+                : 'border border-transparent text-muted-foreground hover:bg-transparent hover:text-muted-foreground',
             )}
             aria-pressed={isSelected}
             onClick={() => {

@@ -70,7 +70,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
         <p className="mt-1 text-sm text-muted-foreground">

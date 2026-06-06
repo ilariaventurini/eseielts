@@ -22,12 +22,12 @@ export function HistoryCorrectionAccordion({ correction }: HistoryCorrectionAcco
   const preview = correctionPreview(correction)
 
   return (
-    <details className="group rounded-md border border-border/80 bg-muted/25">
+    <details className="group rounded-sm border border-border">
       <summary
         className={cn(
           'flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5',
           'text-sm font-medium text-foreground',
-          'hover:bg-muted/50',
+          'hover:bg-muted',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           '[&::-webkit-details-marker]:hidden',
         )}
@@ -46,7 +46,7 @@ export function HistoryCorrectionAccordion({ correction }: HistoryCorrectionAcco
           aria-hidden
         />
       </summary>
-      <div className="border-t border-border/80 px-3 pb-3 pt-2 text-sm whitespace-pre-wrap text-muted-foreground">
+      <div className="border-t border-border px-3 pb-3 pt-2 text-sm whitespace-pre-wrap text-muted-foreground">
         {trimmed.length > 0 ? correction : '—'}
       </div>
     </details>

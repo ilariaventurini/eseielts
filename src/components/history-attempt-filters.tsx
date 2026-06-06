@@ -81,10 +81,7 @@ export function HistoryAttemptFilters({
 
   return (
     <section
-      className={cn(
-        'rounded-lg border-2 border-primary/30 bg-muted/50 p-4 shadow-md',
-        'ring-1 ring-primary/15',
-      )}
+      className="rounded-sm border border-border p-3"
       aria-label="Filter attempts"
     >
       <details className="group">
@@ -97,7 +94,7 @@ export function HistoryAttemptFilters({
           aria-label="Toggle filters"
         >
           <span className="flex min-w-0 items-center gap-2">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-muted text-foreground">
               <Filter className="size-4" aria-hidden />
             </span>
             <h2 className="text-sm font-semibold text-foreground">Filters</h2>
@@ -108,7 +105,7 @@ export function HistoryAttemptFilters({
           />
         </summary>
 
-        <div className="mt-4 flex flex-col gap-4 border-t border-border/80 pt-4">
+        <div className="mt-4 flex flex-col gap-4 border-t border-border pt-4">
           <FilterButtonGroup legend="Task">
             {taskOptions.map(({ key, label }) => (
               <FilterButton

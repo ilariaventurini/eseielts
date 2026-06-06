@@ -211,7 +211,7 @@ export default function WritingPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Writing</h1>
@@ -294,8 +294,8 @@ export default function WritingPage() {
                         type="button"
                         onClick={() => startWithPrompt(p)}
                         className={cn(
-                          'group flex w-full cursor-pointer items-start gap-3 rounded-md border border-border bg-card p-3 text-left text-sm shadow-sm transition-colors',
-                          'hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                          'group flex w-full cursor-pointer items-start gap-3 rounded-sm border border-border bg-card p-2.5 text-left text-sm transition-colors',
+                          'hover:border-foreground/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                         )}
                         aria-label={`Start exercise: ${label}`}
                       >
@@ -412,7 +412,7 @@ export default function WritingPage() {
               <CardTitle>Result</CardTitle>
               <CardDescription>
                 Estimated band (0–9):{' '}
-                <span className="font-semibold text-foreground">{String(feedback.band)}</span>
+                <span className="font-semibold text-accent-highlight">{String(feedback.band)}</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 text-sm">

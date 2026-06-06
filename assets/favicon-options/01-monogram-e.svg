@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="E monogram favicon">
+  <style>
+    :root { color-scheme: light dark; }
+    .bg { fill: #FAFAFA; }
+    .fg { fill: #0A0A0A; }
+    .accent { fill: #DC2626; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0A0A0A; }
+      .fg { fill: #FAFAFA; }
+      .accent { fill: #EF4444; }
+    }
+  </style>
+  <rect class="bg" width="32" height="32" />
+  <text
+    class="fg"
+    x="16"
+    y="15"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    font-family="system-ui, -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+    font-size="20"
+    font-weight="700"
+    letter-spacing="-0.02em"
+  >E</text>
+  <rect class="accent" x="9" y="22" width="14" height="2" />
+</svg>

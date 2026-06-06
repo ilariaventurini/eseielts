@@ -27,7 +27,7 @@ export function WritingTask1Visual({
 
   return (
     <>
-      <figure className="mt-2 md:mt-4 overflow-hidden rounded-md border bg-muted">
+      <figure className="mt-2 md:mt-4 overflow-hidden rounded-sm border bg-muted">
         <button
           type="button"
           className="hover:bg-muted/80 focus-visible:ring-ring w-full cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
@@ -52,7 +52,7 @@ export function WritingTask1Visual({
           >
             <DialogPrimitive.Close
               type="button"
-              className="ring-offset-background hover:bg-white/10 focus-visible:ring-ring absolute top-3 right-3 z-60 cursor-pointer rounded-md bg-black/55 p-2.5 text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="ring-offset-background hover:bg-white/10 focus-visible:ring-ring absolute top-3 right-3 z-60 cursor-pointer rounded-sm bg-black/55 p-2.5 text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               aria-label="Close full screen chart"
             >
               <X className="size-5" aria-hidden />

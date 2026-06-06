@@ -195,7 +195,7 @@ export default function SpeakingBackofficePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Speaking backoffice</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -203,7 +203,7 @@ export default function SpeakingBackofficePage() {
           description. No images — text only. Browse saved prompts in{' '}
           <Link
             to={skillPromptsLibraryPath('speaking')}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
           >
             Prompts library
           </Link>
@@ -305,7 +305,7 @@ export default function SpeakingBackofficePage() {
             Add one or more prompts for {selectedTask.label} ({selectedTask.part}).
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-6">
+        <CardContent className="flex flex-col gap-4">
           {rows.map((row, index) => (
             <div
               key={row.id}

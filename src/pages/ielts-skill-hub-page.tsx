@@ -46,7 +46,7 @@ export default function IeltsSkillHubPage() {
   const skill = raw
 
   return (
-    <div className="flex flex-col gap-8 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{skillTitle(skill)}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{skillSubtitle(skill)}</p>

@@ -159,7 +159,7 @@ export default function HelpDocsBackofficePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Help docs backoffice</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -172,7 +172,7 @@ export default function HelpDocsBackofficePage() {
           Return to{' '}
           <Link
             to={ROUTES.writingBackoffice}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
           >
             Writing backoffice
           </Link>
@@ -345,7 +345,7 @@ export default function HelpDocsBackofficePage() {
                       </p>
                     ) : null}
                     {previewOpen ? (
-                      <div className="max-h-[min(28rem,60vh)] overflow-y-auto rounded-md border border-border bg-card p-4">
+                      <div className="max-h-[min(28rem,60vh)] overflow-y-auto rounded-sm border border-border bg-card p-4">
                         <StudyHelpMarkdown markdown={draft} />
                       </div>
                     ) : null}

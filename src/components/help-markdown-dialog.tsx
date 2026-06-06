@@ -89,7 +89,7 @@ export function HelpMarkdownDialog({
             <p className="text-xs text-muted-foreground">
               <Link
                 to={ROUTES.helpDocsBackoffice}
-                className="font-medium text-primary underline-offset-4 hover:underline"
+                className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
                 onClick={() => {
                   handleOpenChange(false)
                 }}

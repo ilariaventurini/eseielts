@@ -33,9 +33,9 @@ function skillBlurb(skill: IeltsSkill) {
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-4 text-left">
       <div>
-        <p className="text-xs font-medium tracking-wide text-primary uppercase">IELTS prep</p>
+        <p className="label-caps text-foreground">IELTS prep</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">Choose a paper</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Each skill card opens an overview with exercises, history, backoffice, and prompts library
@@ -55,29 +55,21 @@ export default function HomePage() {
             key={skill}
             to={skillRootPath(skill)}
             className={cn(
-              'group block rounded-xl text-left text-inherit no-underline outline-none',
-              'motion-safe:transition-transform motion-safe:duration-200',
-              'motion-safe:hover:-translate-y-px motion-safe:active:translate-y-0',
-              'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              'group block rounded-sm text-left text-inherit no-underline outline-none',
+              'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             )}
             aria-label={`Open ${skillTitle(skill)} — exercises, history, backoffice, and prompts library`}
           >
             <Card
               className={cn(
-                'h-full cursor-pointer border-border ring-1 ring-transparent',
-                'transition-[border-color,box-shadow,background-color] duration-200',
-                'group-hover:border-primary/50 group-hover:bg-accent/30',
-                'group-hover:shadow-md group-hover:ring-primary/20',
-                'group-active:border-primary/60 group-active:bg-accent/40'
+                'h-full cursor-pointer border-border',
+                'transition-[border-color,background-color] duration-200',
+                'group-hover:border-foreground/40',
               )}
             >
               <CardHeader>
-                <CardTitle className="transition-colors duration-200 group-hover:text-primary">
-                  {skillTitle(skill)}
-                </CardTitle>
-                <CardDescription className="transition-colors duration-200 group-hover:text-foreground/85">
-                  {skillBlurb(skill)}
-                </CardDescription>
+                <CardTitle>{skillTitle(skill)}</CardTitle>
+                <CardDescription>{skillBlurb(skill)}</CardDescription>
               </CardHeader>
             </Card>
           </Link>

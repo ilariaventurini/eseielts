@@ -107,7 +107,7 @@ function MarkdownAnchor({
   return (
     <a
       href={href}
-      className="font-medium text-primary underline underline-offset-2 hover:text-primary/90"
+      className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80"
       {...(hashLink
         ? {
             onClick: (event) => {
@@ -166,7 +166,7 @@ const studyHelpMarkdownComponents: Partial<Components> = {
     </li>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="mb-3 border-l-2 border-primary/40 pl-3 text-sm italic text-muted-foreground">
+    <blockquote className="mb-3 border-l-2 border-foreground/30 pl-3 text-sm italic text-muted-foreground">
       {children}
     </blockquote>
   ),
@@ -175,7 +175,7 @@ const studyHelpMarkdownComponents: Partial<Components> = {
   em: ({ children }) => <em className="italic">{children}</em>,
   hr: () => <hr className="my-4 border-border" />,
   table: ({ children }) => (
-    <div className="mb-4 w-full overflow-x-auto rounded-md border border-border">
+    <div className="mb-4 w-full overflow-x-auto rounded-sm border border-border">
       <table className="w-full min-w-[20rem] border-collapse text-left text-sm">{children}</table>
     </div>
   ),
@@ -193,7 +193,7 @@ const studyHelpMarkdownComponents: Partial<Components> = {
     </td>
   ),
   pre: ({ children }) => (
-    <pre className="mb-3 overflow-x-auto rounded-md border border-border bg-muted/50 p-3 text-xs leading-relaxed">
+    <pre className="mb-3 overflow-x-auto rounded-sm border border-border bg-muted/50 p-3 text-xs leading-relaxed">
       {children}
     </pre>
   ),

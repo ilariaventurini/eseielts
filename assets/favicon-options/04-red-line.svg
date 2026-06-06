@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Red line favicon">
+  <style>
+    :root { color-scheme: light dark; }
+    .bg { fill: #FAFAFA; }
+    .border { stroke: #0A0A0A; }
+    .accent { fill: #DC2626; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0A0A0A; }
+      .border { stroke: #FAFAFA; }
+      .accent { fill: #EF4444; }
+    }
+  </style>
+  <rect class="bg" width="32" height="32" />
+  <rect class="accent" x="6" y="15" width="20" height="2" />
+  <rect class="border" x="0.5" y="0.5" width="31" height="31" fill="none" stroke-width="1" />
+</svg>
