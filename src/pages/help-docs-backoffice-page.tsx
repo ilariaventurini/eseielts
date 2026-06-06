@@ -22,14 +22,21 @@ import { ROUTES } from '@/constants/routes.constants'
 import { useAuth } from '@/hooks/use-auth'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { cn } from '@/lib/utils'
-import {
-  fetchHelpDoc,
-  seedHelpDocsFromDefaults,
-  upsertHelpDoc,
-} from '@/services/help-doc-firestore.service'
+import { fetchHelpDoc, upsertHelpDoc } from '@/services/help-doc-firestore.service'
 import type { HelpDocTabId } from '@/types/help-doc.types'
 
 type EditorSource = 'firestore' | 'bundled' | 'unsaved'
+
+function hasUnsavedFirestoreChanges(draft: string, savedFirestoreBody: string | null) {
+  const normalizedDraft = draft.trim()
+  if (normalizedDraft.length === 0) {
+    return false
+  }
+  if (savedFirestoreBody === null) {
+    return true
+  }
+  return normalizedDraft !== savedFirestoreBody.trim()
+}
 
 export default function HelpDocsBackofficePage() {
   const { user, authLoading } = useAuth()
@@ -38,6 +45,7 @@ export default function HelpDocsBackofficePage() {
 
   const [activeTabId, setActiveTabId] = useState<HelpDocTabId>(defaultTabId)
   const [draft, setDraft] = useState('')
+  const [savedFirestoreBody, setSavedFirestoreBody] = useState<string | null>(null)
   const [editorSource, setEditorSource] = useState<EditorSource>('bundled')
   const [tabLoading, setTabLoading] = useState(false)
   const [tabError, setTabError] = useState<string | null>(null)
@@ -45,19 +53,17 @@ export default function HelpDocsBackofficePage() {
     'idle',
   )
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
-  const [seedState, setSeedState] = useState<'idle' | 'seeding' | 'success' | 'error'>(
-    'idle',
-  )
-  const [seedMessage, setSeedMessage] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
   const activeDefinition = helpDocTabDefinition(activeTabId)
+  const canSaveToFirestore = hasUnsavedFirestoreChanges(draft, savedFirestoreBody)
 
   const loadTab = useCallback(
     async (tabId: HelpDocTabId) => {
       if (!firebaseReady) {
         const def = helpDocTabDefinition(tabId)
         setDraft(def.defaultMarkdown)
+        setSavedFirestoreBody(null)
         setEditorSource('bundled')
         return
       }
@@ -68,15 +74,18 @@ export default function HelpDocsBackofficePage() {
         const def = helpDocTabDefinition(tabId)
         if (record !== null && record.body.trim().length > 0) {
           setDraft(record.body)
+          setSavedFirestoreBody(record.body)
           setEditorSource('firestore')
           return
         }
         setDraft(def.defaultMarkdown)
+        setSavedFirestoreBody(null)
         setEditorSource('bundled')
       } catch (e) {
         setTabError(e instanceof Error ? e.message : 'Failed to load tab')
         const def = helpDocTabDefinition(tabId)
         setDraft(def.defaultMarkdown)
+        setSavedFirestoreBody(null)
         setEditorSource('bundled')
       } finally {
         setTabLoading(false)
@@ -139,41 +148,13 @@ export default function HelpDocsBackofficePage() {
     setSaveState('saving')
     try {
       await upsertHelpDoc(activeTabId, body)
+      setSavedFirestoreBody(body)
       setEditorSource('firestore')
       setSaveState('success')
       setSaveMessage('Saved to Firestore.')
     } catch (e) {
       setSaveState('error')
       setSaveMessage(e instanceof Error ? e.message : 'Save failed')
-    }
-  }
-
-  async function handleSeedAll() {
-    setSeedMessage(null)
-    if (!firebaseReady) {
-      setSeedState('error')
-      setSeedMessage('Configure Firebase (VITE_FIREBASE_*).')
-      return
-    }
-    if (user === null) {
-      setSeedState('error')
-      setSeedMessage('Sign in to seed help docs.')
-      return
-    }
-    setSeedState('seeding')
-    try {
-      await seedHelpDocsFromDefaults(
-        IELTS_HELP_DOC_TAB_DEFINITIONS.map((tab) => ({
-          tabId: tab.tabId,
-          body: tab.defaultMarkdown,
-        })),
-      )
-      setSeedState('success')
-      setSeedMessage('All tabs seeded from bundled markdown files.')
-      void loadTab(activeTabId)
-    } catch (e) {
-      setSeedState('error')
-      setSeedMessage(e instanceof Error ? e.message : 'Seed failed')
     }
   }
 
@@ -207,7 +188,7 @@ export default function HelpDocsBackofficePage() {
 
       {firebaseReady && !authLoading && user === null ? (
         <p className="text-sm text-muted-foreground">
-          Sign in with Google to save or seed help docs.
+          Sign in with Google to save help docs.
         </p>
       ) : null}
 
@@ -308,7 +289,9 @@ export default function HelpDocsBackofficePage() {
                       <Button
                         type="button"
                         className="cursor-pointer inline-flex items-center gap-2"
-                        disabled={saveState === 'saving' || tabLoading}
+                        disabled={
+                          saveState === 'saving' || tabLoading || !canSaveToFirestore
+                        }
                         aria-busy={saveState === 'saving'}
                         onClick={() => {
                           void handleSave()
@@ -373,44 +356,6 @@ export default function HelpDocsBackofficePage() {
           </TabsContent>
         ))}
       </Tabs>
-
-      {firebaseReady ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Seed all tabs</CardTitle>
-            <CardDescription>
-              Overwrites every help doc in Firestore with the current bundled markdown
-              from <code className="rounded bg-muted px-1 py-0.5 text-xs">public/docs/</code>
-              . Use once when migrating, or to reset after editing files in the repo.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="cursor-pointer w-fit"
-              disabled={seedState === 'seeding'}
-              aria-busy={seedState === 'seeding'}
-              onClick={() => {
-                void handleSeedAll()
-              }}
-            >
-              {seedState === 'seeding' ? 'Seeding…' : 'Seed all tabs from bundled files'}
-            </Button>
-            {seedMessage ? (
-              <p
-                className={cn(
-                  'text-sm',
-                  seedState === 'error' ? 'text-destructive' : 'text-muted-foreground',
-                )}
-                role="status"
-              >
-                {seedMessage}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   )
 }

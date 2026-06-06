@@ -90,6 +90,9 @@ export function HelpMarkdownDialog({
               <Link
                 to={ROUTES.helpDocsBackoffice}
                 className="font-medium text-primary underline-offset-4 hover:underline"
+                onClick={() => {
+                  handleOpenChange(false)
+                }}
               >
                 Edit help docs
               </Link>
