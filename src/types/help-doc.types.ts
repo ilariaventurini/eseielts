@@ -2,6 +2,9 @@ import type { Timestamp } from 'firebase/firestore'
 
 export const HELP_DOC_TAB_IDS = [
   'study-tips',
+  'vocabulary',
+  'ielts-writing-essay',
+  'todo-and-notes',
   'ielts-listening',
   'ielts-reading',
   'ielts-writing',

@@ -164,6 +164,8 @@ Examples of task sentence paraphrases:
 - opinione nel dettaglio: _I believe_, _I think_, …
 - non serve argomentare di nuovo
 
+---
+
 ### Types and strategies
 **Advantages & Disadvantages**
 eg. _Nowadays, more people move away from their friends and families for work, does this development have more advantages or disadvantages?_
@@ -179,12 +181,19 @@ eg. _Some people believe getting a degree is the best way to find a job. Others 
 3. body paragraph 2: describe view 2
 4. conclusion: your opinion (eg. _Although a university degree may be important for recent university graduates, who have very little or no work experience, I believe that, in most cases, the hands-on experience and proven skills of a potential job candidate matter more than his or her education_)
 
+1° APPROCCIO
+- MB1: Parlo POSITIVAMENTE del primo punto di vista (pdv)
+- MB2: Parlo POSITIVAMENTE del secondo pdv
+2° APPROCCIO
+- MB1: Parlo POSITIVAMENTE del primo pdv e NEGATIVAMENTE del secondo pdv
+- MB2: Parlo POSITIVAMENTE del secondo pdv e NEGATIVAMENTE del primo pdv
+
 **Opinion essay**
 eg. _In some countries many children are overweight as a result of eating too much fast food. Banning fast food from school canteens is the best way to solve the problem. To what extent you agree or disagree? (in che misura dei d’accordo o in disaccordo?)_
 - agree/disagree
   1. intro: parafrasi + summary of your opinion
   2. body paragraph 1: 2-3 reason why you agree or disagree
-  3. body paragraph 2: refute 2-3 counter arguments
+  3. body paragraph 2: confuta 2-3 controargomentazioni
   4. conclusion: your opinion
 - balanced answer
   1. intro: parafrasi + summary of your opinion
@@ -193,7 +202,7 @@ eg. _In some countries many children are overweight as a result of eating too mu
   4. conclusion: _I agree that …. but I disagree that …._ (eg. _I agree fast food should be banned from school canteens but I do not think this is the only thing that needs to be done to prevent child obesity_)
 
 **Problem & solutions**
-here you are not required to express your opinion. 
+here you are not required to express your opinion.
 eg. _People in major cities are exposed to high levels of pollution which causes severe health problems. What are the causes? What can be done to solve such a problem?_
 1. intro: parafrasi + summary of your main body
 2. body paragraph 1: 2-3 causes

@@ -56,7 +56,7 @@ export default function HomePage() {
             to={skillRootPath(skill)}
             className={cn(
               'group block rounded-sm text-left text-inherit no-underline outline-none',
-              'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
             )}
             aria-label={`Open ${skillTitle(skill)} — exercises, history, backoffice, and prompts library`}
           >
@@ -64,7 +64,7 @@ export default function HomePage() {
               className={cn(
                 'h-full cursor-pointer border-border',
                 'transition-[border-color,background-color] duration-200',
-                'group-hover:border-foreground/40',
+                'group-hover:border-foreground/40'
               )}
             >
               <CardHeader>
