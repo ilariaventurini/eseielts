@@ -62,6 +62,7 @@ function mapSpeakingAttempt(id: string, data: DocumentData): SpeakingAttempt {
 }
 
 const SPEAKING_PROMPT_BATCH_SIZE = 500
+const SPEAKING_ATTEMPT_BATCH_SIZE = 500
 
 export async function createSpeakingPrompts(
   items: readonly {
@@ -76,15 +77,56 @@ export async function createSpeakingPrompts(
     throw new Error('Firebase is not configured.')
   }
   const col = collection(db, FIRESTORE_COLLECTIONS.speakingPrompts)
+  const createdIds: string[] = []
 
   for (let offset = 0; offset < items.length; offset += SPEAKING_PROMPT_BATCH_SIZE) {
     const chunk = items.slice(offset, offset + SPEAKING_PROMPT_BATCH_SIZE)
     const batch = writeBatch(db)
     chunk.forEach((item) => {
-      batch.set(doc(col), {
+      const ref = doc(col)
+      createdIds.push(ref.id)
+      batch.set(ref, {
         task: item.task,
         title: item.title,
         body: item.body,
+        practiceTypology: item.practiceTypology,
+        createdAt: serverTimestamp(),
+      })
+    })
+    await batch.commit()
+  }
+
+  return createdIds
+}
+
+export async function createSpeakingAttempts(
+  items: readonly {
+    promptId: string
+    task: SpeakingTask
+    promptTitle: string
+    promptBody: string
+    notes: string
+    extendedTimerMs: number
+    practiceTypology: SpeakingAttempt['practiceTypology']
+  }[],
+) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const col = collection(db, FIRESTORE_COLLECTIONS.speakingAttempts)
+
+  for (let offset = 0; offset < items.length; offset += SPEAKING_ATTEMPT_BATCH_SIZE) {
+    const chunk = items.slice(offset, offset + SPEAKING_ATTEMPT_BATCH_SIZE)
+    const batch = writeBatch(db)
+    chunk.forEach((item) => {
+      batch.set(doc(col), {
+        promptId: item.promptId,
+        task: item.task,
+        promptTitle: item.promptTitle,
+        promptBody: item.promptBody,
+        notes: item.notes,
+        extendedTimerMs: item.extendedTimerMs,
         practiceTypology: item.practiceTypology,
         createdAt: serverTimestamp(),
       })

@@ -10,7 +10,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { skillPromptsLibraryPath } from '@/constants/routes.constants'
 import { useAuth } from '@/hooks/use-auth'
 import { isFirebaseConfigured } from '@/lib/firebase'
-import { createSpeakingPrompts } from '@/services/speaking-firestore.service'
+import {
+  createSpeakingAttempts,
+  createSpeakingPrompts,
+} from '@/services/speaking-firestore.service'
 import { PRACTICE_TYPOLOGY_DEFAULT } from '@/types/practice-typology.types'
 import type { SpeakingTask } from '@/types/speaking.types'
 import { parseSpeakingPromptsImport } from '@/utils/parse-speaking-prompts-import.utils'
@@ -40,6 +43,51 @@ const SPEAKING_TASK_OPTIONS: readonly {
     description: 'Discussion questions',
   },
 ]
+
+const BULK_IMPORT_FORMAT_BY_TASK: Readonly<
+  Record<
+    SpeakingTask,
+    {
+      readonly description: string
+      readonly placeholder: string
+    }
+  >
+> = {
+  1: {
+    description:
+      'Each block: title line (e.g. 01 - Work), question line, answer lines. Blank line between blocks. Answers are saved as AI practice solutions.',
+    placeholder: `01 - Work
+Do you work or study?
+I work as a web developer. I finished my studies a while ago, and I have been working for the same company since 2018.
+
+02 - Work
+What is your job?
+I am a web developer specializing in data visualization. My job is to take complex data and turn it into clear, interactive charts and graphs on websites.`,
+  },
+  2: {
+    description:
+      'Each block: title line, cue card (intro + "You should say:" + bullet list), then the model answer. Blank line between blocks. Answers are saved as AI practice solutions.',
+    placeholder: `01 - Work
+Tell me about a person who is good at his/her job.
+You should say:
+- what kind of job he/she does
+- what skills this job requires
+- how long he/she has been doing this job
+- and explain why you think he/she is good at this job
+I want to talk about my uncle, Marco. He is a chef and he works in a small Italian restaurant in my hometown.`,
+  },
+  3: {
+    description:
+      'Each block: title line (e.g. 01 - Reading), question line, answer lines. Blank line between blocks. Answers are saved as AI practice solutions.',
+    placeholder: `01 - Reading
+In what way have our reading habits changed in recent years?
+Well, I guess the way we read has changed a lot because of new technology. In the past, people only read paper books and physical newspapers.
+
+02 - Reading
+Do you think people read less today than they used to in the past?
+I don't know much about the statistics, but I think people don't read less, they just read different things.`,
+  },
+}
 
 interface SpeakingTaskPickerProps {
   readonly task: SpeakingTask
@@ -83,10 +131,36 @@ interface PromptRow {
   readonly id: string
   readonly title: string
   readonly body: string
+  readonly solution: string
 }
 
 function newEmptyRow(): PromptRow {
-  return { id: crypto.randomUUID(), title: '', body: '' }
+  return { id: crypto.randomUUID(), title: '', body: '', solution: '' }
+}
+
+function buildAiSolutionAttempts(
+  items: readonly { title: string; body: string; answer: string }[],
+  promptIds: readonly string[],
+  task: SpeakingTask,
+) {
+  return items
+    .map((item, index) => ({
+      item,
+      promptId: promptIds[index],
+    }))
+    .filter(
+      ({ item, promptId }) =>
+        promptId !== undefined && item.answer.trim().length > 0,
+    )
+    .map(({ item, promptId }) => ({
+      promptId: promptId as string,
+      task,
+      promptTitle: item.title.trim(),
+      promptBody: item.body.trim(),
+      notes: item.answer.trim(),
+      extendedTimerMs: 0,
+      practiceTypology: 'ai' as const,
+    }))
 }
 
 export default function SpeakingBackofficePage() {
@@ -101,11 +175,16 @@ export default function SpeakingBackofficePage() {
 
   const firebaseReady = isFirebaseConfigured()
   const parsedBulkImport = useMemo(
-    () => parseSpeakingPromptsImport(bulkImportText),
-    [bulkImportText]
+    () => parseSpeakingPromptsImport(bulkImportText, task),
+    [bulkImportText, task],
+  )
+  const bulkImportSolutionCount = useMemo(
+    () => parsedBulkImport.filter((item) => item.answer.trim().length > 0).length,
+    [parsedBulkImport],
   )
   const selectedTask =
     SPEAKING_TASK_OPTIONS.find((option) => option.value === task) ?? SPEAKING_TASK_OPTIONS[0]
+  const bulkImportFormat = BULK_IMPORT_FORMAT_BY_TASK[task]
 
   function updateRow(id: string, patch: Partial<Omit<PromptRow, 'id'>>) {
     setRows((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)))
@@ -136,19 +215,44 @@ export default function SpeakingBackofficePage() {
         task,
         title: row.title.trim(),
         body: row.body.trim(),
+        solution: row.solution.trim(),
         practiceTypology: PRACTICE_TYPOLOGY_DEFAULT,
       }))
       .filter((row) => row.body.length > 0)
     if (payload.length === 0) {
       setStatus('error')
-      setMessage('Add at least one description (required field).')
+      setMessage('Add at least one question (required field).')
       return
     }
     setStatus('saving')
     try {
-      await createSpeakingPrompts(payload)
+      const promptIds = await createSpeakingPrompts(
+        payload.map(({ task: promptTask, title, body, practiceTypology }) => ({
+          task: promptTask,
+          title,
+          body,
+          practiceTypology,
+        })),
+      )
+      const solutionAttempts = buildAiSolutionAttempts(
+        payload.map(({ title, body, solution }) => ({
+          title,
+          body,
+          answer: solution,
+        })),
+        promptIds,
+        task,
+      )
+      if (solutionAttempts.length > 0) {
+        await createSpeakingAttempts(solutionAttempts)
+      }
+      const solutionCount = solutionAttempts.length
       setStatus('success')
-      setMessage(`Saved ${String(payload.length)} prompt(s).`)
+      setMessage(
+        solutionCount > 0
+          ? `Saved ${String(payload.length)} prompt(s) and ${String(solutionCount)} AI solution(s).`
+          : `Saved ${String(payload.length)} prompt(s).`,
+      )
       setRows([newEmptyRow()])
     } catch (e) {
       setStatus('error')
@@ -171,22 +275,30 @@ export default function SpeakingBackofficePage() {
     if (parsedBulkImport.length === 0) {
       setBulkStatus('error')
       setBulkMessage(
-        'Paste at least one prompt block: title on the first line, question on the next, blank line between blocks.'
+        'Paste at least one valid block for the selected task. Check the format hint above the textarea.',
       )
       return
     }
     setBulkStatus('saving')
     try {
-      await createSpeakingPrompts(
+      const promptIds = await createSpeakingPrompts(
         parsedBulkImport.map((item) => ({
           task,
-          title: item.title,
-          body: item.body,
+          title: item.title.trim(),
+          body: item.body.trim(),
           practiceTypology: PRACTICE_TYPOLOGY_DEFAULT,
-        }))
+        })),
       )
+      const solutionAttempts = buildAiSolutionAttempts(parsedBulkImport, promptIds, task)
+      if (solutionAttempts.length > 0) {
+        await createSpeakingAttempts(solutionAttempts)
+      }
       setBulkStatus('success')
-      setBulkMessage(`Saved ${String(parsedBulkImport.length)} prompt(s).`)
+      setBulkMessage(
+        solutionAttempts.length > 0
+          ? `Saved ${String(parsedBulkImport.length)} prompt(s) and ${String(solutionAttempts.length)} AI solution(s) as ${selectedTask.label}.`
+          : `Saved ${String(parsedBulkImport.length)} prompt(s) as ${selectedTask.label}.`,
+      )
       setBulkImportText('')
     } catch (e) {
       setBulkStatus('error')
@@ -199,8 +311,8 @@ export default function SpeakingBackofficePage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Speaking backoffice</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          IELTS Speaking has three parts. Add prompts per task: optional title, required
-          description. No images — text only. Browse saved prompts in{' '}
+          IELTS Speaking has three parts. Add prompts per task: optional title, required question,
+          optional AI solution. No images — text only. Browse saved prompts in{' '}
           <Link
             to={skillPromptsLibraryPath('speaking')}
             className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80"
@@ -242,11 +354,8 @@ export default function SpeakingBackofficePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Bulk import</CardTitle>
-          <CardDescription>
-            Paste many prompts at once. Each block needs a title line, a question line, and a blank
-            line before the next block.
-          </CardDescription>
+          <CardTitle>Bulk import — {selectedTask.label}</CardTitle>
+          <CardDescription>{bulkImportFormat.description}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -257,13 +366,13 @@ export default function SpeakingBackofficePage() {
               onChange={(e) => {
                 setBulkImportText(e.target.value)
               }}
-              placeholder={`04 - Work 04\nWhat do you like about your job?\n\n05 - Work 05\nIs there something you don't like about your job?`}
+              placeholder={bulkImportFormat.placeholder}
               rows={14}
             />
           </div>
           <p className="text-sm text-muted-foreground">
             {parsedBulkImport.length > 0
-              ? `${String(parsedBulkImport.length)} prompt(s) ready to import as ${selectedTask.label}.`
+              ? `${String(parsedBulkImport.length)} prompt(s) ready to import as ${selectedTask.label}${bulkImportSolutionCount > 0 ? `, including ${String(bulkImportSolutionCount)} AI solution(s)` : ''}.`
               : 'No valid prompts detected yet.'}
           </p>
           <Button
@@ -300,9 +409,10 @@ export default function SpeakingBackofficePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Add prompts manually</CardTitle>
+          <CardTitle>Add prompts manually — {selectedTask.label}</CardTitle>
           <CardDescription>
-            Add one or more prompts for {selectedTask.label} ({selectedTask.part}).
+            Add one or more prompts for {selectedTask.label} ({selectedTask.part}). Paste an
+            optional AI solution to store a model answer with Practice type = AI.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -337,20 +447,36 @@ export default function SpeakingBackofficePage() {
                   onChange={(e) => {
                     updateRow(row.id, { title: e.target.value })
                   }}
-                  placeholder="Short label for this prompt"
+                  placeholder="e.g. 01 - Work"
                   autoComplete="off"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor={`speaking-body-${row.id}`}>Description</Label>
+                <Label htmlFor={`speaking-body-${row.id}`}>Question</Label>
                 <Textarea
                   id={`speaking-body-${row.id}`}
                   value={row.body}
                   onChange={(e) => {
                     updateRow(row.id, { body: e.target.value })
                   }}
-                  placeholder="Full prompt or instructions for this task"
-                  rows={6}
+                  placeholder={
+                    task === 2
+                      ? 'Cue card text, including bullet points'
+                      : 'Examiner question for this task'
+                  }
+                  rows={task === 2 ? 8 : 4}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={`speaking-solution-${row.id}`}>Solution — Practice type AI (optional)</Label>
+                <Textarea
+                  id={`speaking-solution-${row.id}`}
+                  value={row.solution}
+                  onChange={(e) => {
+                    updateRow(row.id, { solution: e.target.value })
+                  }}
+                  placeholder="Model answer / svolgimento dell'esercizio"
+                  rows={8}
                 />
               </div>
             </div>
