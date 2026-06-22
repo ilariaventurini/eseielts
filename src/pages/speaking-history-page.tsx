@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
 import { HistoryAttemptFilters } from '@/components/history-attempt-filters'
+import { HistoryAttemptSort } from '@/components/history-attempt-sort'
 import { PracticeTypologyBadge } from '@/components/practice-typology-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,6 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  DEFAULT_HISTORY_SORT,
+  type HistorySortKey,
+} from '@/constants/history-sort.constants'
 import { ROUTES } from '@/constants/routes.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { fetchSpeakingAttempts } from '@/services/speaking-firestore.service'
@@ -22,6 +27,7 @@ import {
   type HistoryTaskFilter,
   type HistoryTypologyFilter,
 } from '@/utils/history-filters.utils'
+import { sortHistoryAttempts } from '@/utils/history-sort.utils'
 
 const SPEAKING_TASK_FILTER_OPTIONS = [
   { key: 'all' as const, label: 'All tasks' },
@@ -59,6 +65,7 @@ export default function SpeakingHistoryPage() {
   const [loading, setLoading] = useState(firebaseReady)
   const [taskFilter, setTaskFilter] = useState<HistoryTaskFilter>('all')
   const [typologyFilter, setTypologyFilter] = useState<HistoryTypologyFilter>('all')
+  const [sortKey, setSortKey] = useState<HistorySortKey>(DEFAULT_HISTORY_SORT)
 
   useEffect(() => {
     if (!firebaseReady) {
@@ -88,10 +95,10 @@ export default function SpeakingHistoryPage() {
     }
   }, [firebaseReady])
 
-  const filteredItems = useMemo(
-    () => filterSpeakingAttempts(items, taskFilter, typologyFilter),
-    [items, taskFilter, typologyFilter],
-  )
+  const filteredItems = useMemo(() => {
+    const filtered = filterSpeakingAttempts(items, taskFilter, typologyFilter)
+    return sortHistoryAttempts(filtered, sortKey)
+  }, [items, taskFilter, typologyFilter, sortKey])
 
   const hasActiveFilters = taskFilter !== 'all' || typologyFilter !== 'all'
 
@@ -127,6 +134,7 @@ export default function SpeakingHistoryPage() {
             typologyFilter={typologyFilter}
             onTypologyFilterChange={setTypologyFilter}
           />
+          <HistoryAttemptSort sortKey={sortKey} onSortKeyChange={setSortKey} />
           <p className="text-xs text-muted-foreground">
             Showing {String(filteredItems.length)} of {String(items.length)} attempt(s).
           </p>
