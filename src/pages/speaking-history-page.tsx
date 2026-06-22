@@ -56,6 +56,17 @@ function filterSpeakingAttempts(
   )
 }
 
+function formatResultsCount(
+  filteredCount: number,
+  totalCount: number,
+  hasActiveFilters: boolean,
+) {
+  if (hasActiveFilters) {
+    return `Showing ${String(filteredCount)} of ${String(totalCount)} attempt(s)`
+  }
+  return `${String(totalCount)} attempt(s)`
+}
+
 export default function SpeakingHistoryPage() {
   const firebaseReady = isFirebaseConfigured()
   const configError = firebaseReady ? null : 'Firebase is not configured.'
@@ -74,7 +85,7 @@ export default function SpeakingHistoryPage() {
     let cancelled = false
     void (async () => {
       try {
-        const list = await fetchSpeakingAttempts(80)
+        const list = await fetchSpeakingAttempts()
         if (!cancelled) {
           setItems(list)
         }
@@ -135,10 +146,17 @@ export default function SpeakingHistoryPage() {
             onTypologyFilterChange={setTypologyFilter}
           />
           <HistoryAttemptSort sortKey={sortKey} onSortKeyChange={setSortKey} />
-          <p className="text-xs text-muted-foreground">
-            Showing {String(filteredItems.length)} of {String(items.length)} attempt(s).
-          </p>
         </>
+      ) : null}
+
+      {!loading && !error && items.length > 0 ? (
+        <p
+          className="text-sm font-medium text-foreground"
+          role="status"
+          aria-live="polite"
+        >
+          {formatResultsCount(filteredItems.length, items.length, hasActiveFilters)}
+        </p>
       ) : null}
 
       {!loading && !error && items.length === 0 ? (
