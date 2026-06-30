@@ -1,8 +1,13 @@
-import { Loader2, RefreshCw } from 'lucide-react'
+import { Loader2, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { PracticeTypologyBadge } from '@/components/practice-typology-badge'
+import {
+  PromptEditorDialog,
+  type PromptEditorValues,
+} from '@/components/prompt-editor-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -14,8 +19,18 @@ import {
 import { skillBackofficePath } from '@/constants/routes.constants'
 import { isFirebaseConfigured } from '@/lib/firebase'
 import { cn } from '@/lib/utils'
-import { fetchAllSpeakingPrompts } from '@/services/speaking-firestore.service'
+import {
+  deleteSpeakingPromptWithAttempts,
+  fetchAllSpeakingPrompts,
+  updateSpeakingPrompt,
+} from '@/services/speaking-firestore.service'
 import type { SpeakingPrompt, SpeakingTask } from '@/types/speaking.types'
+
+const SPEAKING_EDITOR_TASK_OPTIONS = [
+  { value: 1, label: 'Task 1' },
+  { value: 2, label: 'Task 2' },
+  { value: 3, label: 'Task 3' },
+] as const
 
 function taskBadgeClass(task: SpeakingTask) {
   if (task === 1) {
@@ -29,6 +44,10 @@ export default function SpeakingPromptsLibraryPage() {
   const [libraryLoading, setLibraryLoading] = useState(false)
   const [libraryError, setLibraryError] = useState<string | null>(null)
   const [libraryFilter, setLibraryFilter] = useState<'all' | SpeakingTask>('all')
+  const [editingPrompt, setEditingPrompt] = useState<SpeakingPrompt | null>(null)
+  const [deletingPrompt, setDeletingPrompt] = useState<SpeakingPrompt | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const firebaseReady = isFirebaseConfigured()
 
@@ -66,6 +85,53 @@ export default function SpeakingPromptsLibraryPage() {
       : promptLibrary.filter(
           (p) => libraryFilter === 'all' || p.task === libraryFilter,
         )
+
+  async function handleSaveEdit(values: PromptEditorValues) {
+    if (!editingPrompt) {
+      return
+    }
+    const task = values.task as SpeakingTask
+    await updateSpeakingPrompt(editingPrompt.id, {
+      task,
+      title: values.title,
+      body: values.body,
+      practiceTypology: values.practiceTypology,
+    })
+    setPromptLibrary((prev) =>
+      prev === null
+        ? prev
+        : prev.map((p) =>
+            p.id === editingPrompt.id
+              ? {
+                  ...p,
+                  task,
+                  title: values.title,
+                  body: values.body,
+                  practiceTypology: values.practiceTypology,
+                }
+              : p,
+          ),
+    )
+  }
+
+  async function handleConfirmDelete() {
+    if (!deletingPrompt) {
+      return
+    }
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await deleteSpeakingPromptWithAttempts(deletingPrompt.id)
+      setPromptLibrary((prev) =>
+        prev === null ? prev : prev.filter((p) => p.id !== deletingPrompt.id),
+      )
+      setDeletingPrompt(null)
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'Failed to delete prompt')
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4 text-left">
@@ -213,6 +279,35 @@ export default function SpeakingPromptsLibraryPage() {
                           : 'Date unknown'}
                       </p>
                     </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 cursor-pointer"
+                        onClick={() => {
+                          setEditingPrompt(p)
+                        }}
+                        aria-label="Edit prompt"
+                        title="Edit prompt"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 cursor-pointer text-destructive hover:text-destructive"
+                        onClick={() => {
+                          setDeleteError(null)
+                          setDeletingPrompt(p)
+                        }}
+                        aria-label="Delete prompt"
+                        title="Delete prompt"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap text-muted-foreground">
                     {p.body}
@@ -223,6 +318,43 @@ export default function SpeakingPromptsLibraryPage() {
           </CardContent>
         </Card>
       ) : null}
+
+      {editingPrompt ? (
+        <PromptEditorDialog
+          open={editingPrompt !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingPrompt(null)
+            }
+          }}
+          skillLabel="speaking"
+          taskOptions={SPEAKING_EDITOR_TASK_OPTIONS}
+          initialValues={{
+            title: editingPrompt.title,
+            task: editingPrompt.task,
+            body: editingPrompt.body,
+            practiceTypology: editingPrompt.practiceTypology,
+          }}
+          onSave={handleSaveEdit}
+        />
+      ) : null}
+
+      <ConfirmDialog
+        open={deletingPrompt !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) {
+            setDeletingPrompt(null)
+            setDeleteError(null)
+          }
+        }}
+        title="Delete this prompt?"
+        description="This permanently deletes the prompt and every practice attempt linked to it. This cannot be undone."
+        confirming={deleting}
+        error={deleteError}
+        onConfirm={() => {
+          void handleConfirmDelete()
+        }}
+      />
     </div>
   )
 }

@@ -1,12 +1,16 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   limit,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
   where,
+  writeBatch,
   type DocumentData,
 } from 'firebase/firestore'
 
@@ -18,6 +22,7 @@ import type {
   WritingPrompt,
   WritingTask,
 } from '@/types/writing.types'
+import { countWords } from '@/utils/word-count.utils'
 
 function mapPrompt(id: string, data: DocumentData): WritingPrompt {
   const rawImage =
@@ -80,6 +85,96 @@ export async function createWritingPrompts(
       }),
     ),
   )
+}
+
+/** Split an array into chunks of at most `size` items (functional, no for-loops). */
+function chunk<T>(items: readonly T[], size: number) {
+  return items.reduce<T[][]>((acc, item, index) => {
+    if (index % size === 0) {
+      acc.push([])
+    }
+    acc[acc.length - 1].push(item)
+    return acc
+  }, [])
+}
+
+/**
+ * Update the editable fields of a writing prompt (image is left unchanged) and
+ * keep the snapshot stored on its attempts in sync (task, promptTitle,
+ * promptBody). Per-attempt fields like `answer` and `practiceTypology` are
+ * intentionally left untouched.
+ */
+export async function updateWritingPrompt(
+  id: string,
+  patch: {
+    task: WritingTask
+    title: string
+    body: string
+    practiceTypology: WritingPrompt['practiceTypology']
+  },
+) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const ref = doc(db, FIRESTORE_COLLECTIONS.writingPrompts, id)
+  await updateDoc(ref, {
+    task: patch.task,
+    title: patch.title,
+    body: patch.body,
+    practiceTypology: patch.practiceTypology,
+  })
+  const attemptsCol = collection(db, FIRESTORE_COLLECTIONS.writingAttempts)
+  const attemptsSnap = await getDocs(query(attemptsCol, where('promptId', '==', id)))
+  if (attemptsSnap.size > 0) {
+    await chunk(attemptsSnap.docs, 500).reduce(async (prev, group) => {
+      await prev
+      const batch = writeBatch(db)
+      group.forEach((d) => {
+        batch.update(d.ref, {
+          task: patch.task,
+          promptTitle: patch.title,
+          promptBody: patch.body,
+        })
+      })
+      await batch.commit()
+    }, Promise.resolve())
+  }
+}
+
+/** Delete a single writing attempt (the exercise) without touching its prompt. */
+export async function deleteWritingAttempt(id: string) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  await deleteDoc(doc(db, FIRESTORE_COLLECTIONS.writingAttempts, id))
+}
+
+/**
+ * Delete a writing prompt together with every attempt linked to it.
+ * Returns the number of associated attempts that were removed.
+ */
+export async function deleteWritingPromptWithAttempts(id: string) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const attemptsCol = collection(db, FIRESTORE_COLLECTIONS.writingAttempts)
+  const attemptsSnap = await getDocs(query(attemptsCol, where('promptId', '==', id)))
+  const refs = [
+    ...attemptsSnap.docs.map((d) => d.ref),
+    doc(db, FIRESTORE_COLLECTIONS.writingPrompts, id),
+  ]
+  await chunk(refs, 500).reduce(async (prev, group) => {
+    await prev
+    const batch = writeBatch(db)
+    group.forEach((ref) => {
+      batch.delete(ref)
+    })
+    await batch.commit()
+  }, Promise.resolve())
+  return attemptsSnap.size
 }
 
 function writingPromptCreatedMs(createdAt: WritingPrompt['createdAt']) {
@@ -159,6 +254,22 @@ export async function createWritingAttempt(payload: {
     practiceTypology: payload.practiceTypology,
     createdAt: serverTimestamp(),
   })
+}
+
+/**
+ * Update the answer text of an existing writing attempt.
+ * Recomputes `wordCount` to keep it consistent with the edited answer.
+ * Returns the new word count so callers can sync local state.
+ */
+export async function updateWritingAttemptAnswer(id: string, answer: string) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const wordCount = countWords(answer)
+  const ref = doc(db, FIRESTORE_COLLECTIONS.writingAttempts, id)
+  await updateDoc(ref, { answer, wordCount })
+  return wordCount
 }
 
 export async function fetchWritingAttempts(max = 50) {

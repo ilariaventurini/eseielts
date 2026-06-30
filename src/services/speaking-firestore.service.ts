@@ -1,12 +1,14 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   limit,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
   where,
   writeBatch,
   type DocumentData,
@@ -130,6 +132,95 @@ export async function createSpeakingAttempts(
   }
 }
 
+/** Split an array into chunks of at most `size` items (functional, no for-loops). */
+function chunk<T>(items: readonly T[], size: number) {
+  return items.reduce<T[][]>((acc, item, index) => {
+    if (index % size === 0) {
+      acc.push([])
+    }
+    acc[acc.length - 1].push(item)
+    return acc
+  }, [])
+}
+
+/**
+ * Update the editable fields of a speaking prompt and keep the snapshot stored
+ * on its attempts in sync (task, promptTitle, promptBody). Per-attempt fields
+ * like `notes` and `practiceTypology` are intentionally left untouched.
+ */
+export async function updateSpeakingPrompt(
+  id: string,
+  patch: {
+    task: SpeakingTask
+    title: string
+    body: string
+    practiceTypology: SpeakingPrompt['practiceTypology']
+  },
+) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const ref = doc(db, FIRESTORE_COLLECTIONS.speakingPrompts, id)
+  await updateDoc(ref, {
+    task: patch.task,
+    title: patch.title,
+    body: patch.body,
+    practiceTypology: patch.practiceTypology,
+  })
+  const attemptsCol = collection(db, FIRESTORE_COLLECTIONS.speakingAttempts)
+  const attemptsSnap = await getDocs(query(attemptsCol, where('promptId', '==', id)))
+  if (attemptsSnap.size > 0) {
+    await chunk(attemptsSnap.docs, 500).reduce(async (prev, group) => {
+      await prev
+      const batch = writeBatch(db)
+      group.forEach((d) => {
+        batch.update(d.ref, {
+          task: patch.task,
+          promptTitle: patch.title,
+          promptBody: patch.body,
+        })
+      })
+      await batch.commit()
+    }, Promise.resolve())
+  }
+}
+
+/** Delete a single speaking attempt (the exercise) without touching its prompt. */
+export async function deleteSpeakingAttempt(id: string) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  await deleteDoc(doc(db, FIRESTORE_COLLECTIONS.speakingAttempts, id))
+}
+
+/**
+ * Delete a speaking prompt together with every attempt linked to it.
+ * Returns the number of associated attempts that were removed.
+ */
+export async function deleteSpeakingPromptWithAttempts(id: string) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const attemptsCol = collection(db, FIRESTORE_COLLECTIONS.speakingAttempts)
+  const attemptsSnap = await getDocs(query(attemptsCol, where('promptId', '==', id)))
+  const refs = [
+    ...attemptsSnap.docs.map((d) => d.ref),
+    doc(db, FIRESTORE_COLLECTIONS.speakingPrompts, id),
+  ]
+  await chunk(refs, 500).reduce(async (prev, group) => {
+    await prev
+    const batch = writeBatch(db)
+    group.forEach((ref) => {
+      batch.delete(ref)
+    })
+    await batch.commit()
+  }, Promise.resolve())
+  return attemptsSnap.size
+}
+
 /** All speaking prompts in Firestore, newest first (by `createdAt` when present). */
 export async function fetchAllSpeakingPrompts() {
   const db = getDb()
@@ -179,6 +270,16 @@ export async function createSpeakingAttempt(payload: {
     practiceTypology: payload.practiceTypology,
     createdAt: serverTimestamp(),
   })
+}
+
+/** Update the notes text of an existing speaking attempt. */
+export async function updateSpeakingAttemptNotes(id: string, notes: string) {
+  const db = getDb()
+  if (!db) {
+    throw new Error('Firebase is not configured.')
+  }
+  const ref = doc(db, FIRESTORE_COLLECTIONS.speakingAttempts, id)
+  await updateDoc(ref, { notes })
 }
 
 export async function fetchSpeakingAttempts(max?: number) {
