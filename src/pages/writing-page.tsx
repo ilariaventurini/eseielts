@@ -1,10 +1,11 @@
-import { Loader2 } from 'lucide-react'
+import { Eraser, Loader2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { PracticeTypologyPicker } from '@/components/practice-typology-picker'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { WritingGeminiSolutionAccordion } from '@/components/writing-gemini-solution-accordion'
 import { WritingTask1Visual } from '@/components/writing-task1-visual'
 import { ROUTES } from '@/constants/routes.constants'
 import { writingDraftStorageKey } from '@/constants/storage.constants'
@@ -15,6 +16,7 @@ import {
   requestWritingFeedback,
   type GeminiRequestProgress,
 } from '@/services/gemini-feedback.service'
+import { requestWritingSolution } from '@/services/gemini-writing-solution.service'
 import {
   createWritingAttempt,
   fetchWritingPromptsByTask,
@@ -36,6 +38,9 @@ export default function WritingPage() {
   const [feedback, setFeedback] = useState<GeminiFeedbackPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [solutionLoading, setSolutionLoading] = useState(false)
+  const [geminiSolution, setGeminiSolution] = useState<string | null>(null)
+  const [solutionError, setSolutionError] = useState<string | null>(null)
   const [requestProgress, setRequestProgress] = useState<GeminiRequestProgress | null>(null)
   const [availablePrompts, setAvailablePrompts] = useState<WritingPrompt[] | null>(null)
   const [promptsLoading, setPromptsLoading] = useState(false)
@@ -104,6 +109,8 @@ export default function WritingPage() {
   function startWithPrompt(p: WritingPrompt) {
     setError(null)
     setFeedback(null)
+    setGeminiSolution(null)
+    setSolutionError(null)
     setPracticeTypology(PRACTICE_TYPOLOGY_DEFAULT)
     const draftKey = writingDraftStorageKey(p.id)
     setAnswer(localStorage.getItem(draftKey) ?? '')
@@ -198,6 +205,53 @@ export default function WritingPage() {
     setError(null)
     setPracticeTypology(PRACTICE_TYPOLOGY_DEFAULT)
     setRequestProgress(null)
+    setGeminiSolution(null)
+    setSolutionError(null)
+  }
+
+  function handleClearAnswer() {
+    persistAnswer('')
+  }
+
+  async function handleGenerateGeminiSolution() {
+    if (!prompt) {
+      return
+    }
+    setSolutionError(null)
+    setSolutionLoading(true)
+    setRequestProgress(null)
+    try {
+      const { solution } = await requestWritingSolution(
+        {
+          task: prompt.task,
+          promptTitle: prompt.title.length > 0 ? prompt.title : `Task ${String(prompt.task)}`,
+          promptBody: prompt.body,
+          promptImageUrl: prompt.imageUrl,
+          targetLevel: TARGET_CEFR_LEVEL,
+        },
+        {
+          onProgress: (progress) => {
+            setRequestProgress(progress)
+          },
+        }
+      )
+      setGeminiSolution(solution)
+    } catch (e) {
+      setSolutionError(e instanceof Error ? e.message : 'Gemini solution request failed')
+    } finally {
+      setSolutionLoading(false)
+      setRequestProgress(null)
+    }
+  }
+
+  function solutionLoadingLabel() {
+    if (!solutionLoading) {
+      return 'Generate model answer'
+    }
+    if (requestProgress === null) {
+      return 'Generating with Gemini…'
+    }
+    return `Tentativo ${String(requestProgress.attempt)}/${String(requestProgress.maxAttempts)} · ${requestProgress.modelName}`
   }
 
   function submitButtonLabel() {
@@ -342,19 +396,33 @@ export default function WritingPage() {
             </CardHeader>
           </Card>
 
-          <div className="flex flex-wrap items-center justify-between gap-x-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-x-2">
               <span className="min-w-16">⏱ {formatClockSeconds(elapsedSec)}</span>
               <span className="min-w-16">
                 💬 {String(wordCount)}/{String(minWords)}
               </span>
             </div>
-            {paragraphCounts.length > 0 ? (
-              <p className="text-xs text-muted-foreground" aria-live="polite">
-                <span className="sr-only">Words per paragraph (blank-line separated): </span>
-                {paragraphCounts.map((n, i) => `p${String(i + 1)}: ${String(n)}`).join(' · ')}
-              </p>
-            ) : null}
+            <div className="flex items-center gap-2">
+              {paragraphCounts.length > 0 ? (
+                <p className="text-xs text-muted-foreground" aria-live="polite">
+                  <span className="sr-only">Words per paragraph (blank-line separated): </span>
+                  {paragraphCounts.map((n, i) => `p${String(i + 1)}: ${String(n)}`).join(' · ')}
+                </p>
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7 cursor-pointer"
+                disabled={loading || solutionLoading || answer.length === 0}
+                aria-label="Clear writing response"
+                title="Clear writing response"
+                onClick={handleClearAnswer}
+              >
+                <Eraser className="size-4" aria-hidden />
+              </Button>
+            </div>
           </div>
 
           <Textarea
@@ -366,17 +434,28 @@ export default function WritingPage() {
             aria-label="Your writing response"
           />
 
+          <WritingGeminiSolutionAccordion
+            solution={geminiSolution}
+            loading={solutionLoading}
+            loadingLabel={solutionLoadingLabel()}
+            error={solutionError}
+            disabled={loading}
+            onGenerate={() => {
+              void handleGenerateGeminiSolution()
+            }}
+          />
+
           <PracticeTypologyPicker
             value={practiceTypology}
             onChange={setPracticeTypology}
-            disabled={loading}
+            disabled={loading || solutionLoading}
           />
 
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               className="cursor-pointer inline-flex items-center gap-2"
-              disabled={loading || answer.trim().length === 0}
+              disabled={loading || solutionLoading || answer.trim().length === 0}
               aria-busy={loading}
               onClick={() => {
                 void handleSubmit()
@@ -395,7 +474,7 @@ export default function WritingPage() {
               type="button"
               variant="secondary"
               className="cursor-pointer"
-              disabled={loading}
+              disabled={loading || solutionLoading}
               onClick={handleNewSession}
             >
               Cancel session

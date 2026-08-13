@@ -23,3 +23,12 @@ export interface GeminiWritingFeedbackRequest {
   readonly durationMs: number
   readonly targetLevel: string
 }
+
+export interface GeminiWritingSolutionRequest {
+  readonly task: 1 | 2
+  readonly promptTitle: string
+  readonly promptBody: string
+  /** HTTPS URL to the Task 1 image; sent to Gemini as inline image when set. */
+  readonly promptImageUrl?: string | null
+  readonly targetLevel: string
+}

@@ -1,6 +1,9 @@
 /** Netlify function path (override with VITE_GEMINI_FEEDBACK_URL if needed). */
 export const GEMINI_FEEDBACK_PATH = '/.netlify/functions/gemini-feedback'
 
+/** Netlify function path (override with VITE_GEMINI_WRITING_SOLUTION_URL if needed). */
+export const GEMINI_WRITING_SOLUTION_PATH = '/.netlify/functions/gemini-writing-solution'
+
 export const AVAILABLE_GEMINI_MODELS = [
   // consigliati (stabili)
   'gemini-2.5-flash',

@@ -22,3 +22,6 @@
 # netlify dev may still cap simulated function duration (~30s) unless the project is linked to a site with a higher limit.
 [functions."gemini-feedback"]
   timeout = 60
+
+[functions."gemini-writing-solution"]
+  timeout = 60

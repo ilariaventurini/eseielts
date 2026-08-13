@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string | undefined
   readonly VITE_FIREBASE_APP_ID: string | undefined
   readonly VITE_GEMINI_FEEDBACK_URL: string | undefined
+  readonly VITE_GEMINI_WRITING_SOLUTION_URL: string | undefined
 }
 
 interface ImportMeta {
