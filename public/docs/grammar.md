@@ -100,7 +100,7 @@ examples:
 
 # connecting ideas: linkers part 2 (2026-07-07)
 
-## to/in order to (purpose) = traduzione
+## to/in order to (purpose) = per/al fine di
 **structure**: to + verb/in order to + verb
 **use when**: explaining the purpose of an action
 **difference**: "in order to" is slightly more formal
@@ -113,7 +113,7 @@ examples:
 - *I am studying every day to learn English*
 - *She woke up early in order to catch the train*
 
-## so that (purpose) = traduzione
+## so that (purpose) = in modo che / affinché
 **structure**: so that + subject + verb (often with can/could)
 **use when**: explaining purpose with more detail
 **note**: needs a complete clause after it
@@ -126,7 +126,7 @@ examples:
 - *the teacher give us simple examples so that we can understand easily*
 - *Put on your coat so that you won't feel cold*
 
-## while/when (time relationship) = traduzione
+## while/when (time relationship) = mentre / quando
 **structure**: while/when + subject + verb
 **use when**: showing actions that happen at the same time (while) or at a point in time (when)
 **difference**: "while" is for ongoing actions; "when" is for points or periods
@@ -139,7 +139,7 @@ examples:
 - *I like to listen to music while I cook dinner*
 - *My phone rang while I was watching a movie*
 
-## before/after (time relationship) = traduzione
+## before/after (time relationship) = prima / dopo
 **structure**: before/after + noun or verb-ing
 **use when**: showing one event happened earlier or later than another
 **what they mean**: these linkers show how events relate to each other in time - before, after, or during
@@ -153,7 +153,7 @@ examples:
 - *We can go for a walk after it stops raining.*
 - *After breakfast, I brush my teeth.*
 
-## for example/for instance (clarification) = traduzione
+## for example/for instance (clarification) = per esempio / ad esempio
 **position**: usually after a comma, semicolon, or period
 **use when**: giving specific examples to support your point
 **what they mean**: these linkers help you explain, give examples, or clarify your point
@@ -165,7 +165,7 @@ examples:
 - *You can do many things in London. For instance, you can visit free museums*
 - *I love healthy food. For example, I eat a lot of fruit and vegetables*
 
-## actually/on the contrary (clarification) = traduzione
+## actually/on the contrary (clarification) = in realtà / al contrario
 **position**: usually at the beginning of a sentence or after a comma
 **use when**: contradicting or correcting information
 **difference**: "actually" clarifies information; "on the contrary" shows complete opposition
@@ -179,7 +179,7 @@ examples:
 - *People think I am British, but actually, I am Canadian*
 - *The exam was not difficult. On the contrary, it was very easy!*
 
-## by the way/talking of (conversation management linkers) = traduzione
+## by the way/talking of (conversation management linkers) = a proposito / parlando di
 **position**: usually at the beginning of a sentence
 **use when**: changing the subject or making a related point
 **what they mean**: these expressions help you navigate conversations smoothly - changing topics, returning to points, or ending discussions.
@@ -192,7 +192,7 @@ examples:
 - *I loved the movie last night. By the way, did you finish your homework?*
 - *A: "I saw a beautiful dog today." B: "Talking of dogs, how is your puppy?"*
 
-## anyway (conversation management linkers) = traduzione
+## anyway (conversation management linkers) = comunque / ad ogni modo
 **position**: usually at the beginning of a sentence
 **use when**:
 - returning to the main topic
@@ -204,3 +204,128 @@ examples:
 - *anyway, what were you saying about harry?*
 - *i'm too tired to go out. anyway, there's a good film on tv.*
 - *The weather was bad, but anyway, we had a great time at the party.*
+
+# Expressing Possibility and Obligation: Modal Verbs Part 1: linkers part 1 (2026-07-13)
+
+Modal verbs help you express important meanings like ability, possibility, permission, and obligation. Using the right modal verb makes your English sound more natural and helps you communicate exactly what you mean.
+
+## can & could (Ability and Possibility) = potere, saper fare & potrei, potrebbe
+`can` + `base verb`
+- **use for**: Present ability, possibility, or permission (can + subject + base verb)
+- **what they mean**: These modals help you talk about abilities and possibilities in different situations.
+- **note**: relaxed, casual (close friends, family, comfortable)
+
+examples:
+- *I can speak three languages* (ability)
+- *We can meet tomorrow if you're free* (possibility)
+- *Can I use your phone?* (asking permission)
+- *I can cook a good dinner*
+- *I can drive a car*
+
+`could` + `base verb`
+- **use for**: Past ability, polite requests (could + subject + base verb), or possibilities
+- **what they mean**: These modals help you talk about abilities and possibilities in different situations
+- **note**: polite, extra nice (great to use with people you don’t know)
+
+examples:
+- *When I was younger, I could run much faster* (past ability)
+- *Could you help me with this?* (polite request)
+- *We could go to the Italian restaurant* (suggestion/possibility)
+- *I could climb tall trees when I was younger*
+- *I could sleep until noon when I was younger*
+
+examples with `can` and `could`:
+- *I can speak English quite well now, but I couldn't speak it at all five years ago*
+- *I can use computer programs easily. When I was a child, I could only play simple games*
+- *I can cook pasta perfectly now, but I couldn't even boil water when I was a teenager*
+- *I can swim across the pool today, but I couldn't swim without help when I was seven*
+- *I can drive a car easily now, but I could only ride a bicycle when I was younger*
+- *I can wake up early for work now, but I couldn't get out of bed before 10:00 AM when I was a student*
+- *I can play the guitar a little bit now, but I could only play the triangle in primary school*
+
+## must & have to (obligation and necessity) = dovere
+`must` + `base verb`
+- **use for**: Strong personal obligation or necessity (external obligations + internal obligation)
+- **what they mean**: These modals help you express when something is necessary or obligatory
+- **note**: do not work in the past, in that case use `had to`. it works for the future
+- **note**: strongest, most imperative modal verb
+
+examples:
+- *I must finish this report today* (personal obligation)
+- *You must try this restaurant—it's amazing!* (recommendation)
+- *Students must attend all classes* (rule)
+- *I must drink more water today. I feel very dry*
+- *I must clean my bedroom this evening. It is very messy*
+- *I must go to sleep early tonight. I am very tired*
+
+`have to` + `base verb`
+- **use for**: External obligation or necessity
+- **what they mean**: These modals help you express when something is necessary or obligatory.
+- **note**: Be careful with subject verb-agreement
+- **note**: external obligations only
+
+examples:
+- *I have to work on Saturday this week* (external obligation)
+- *She has to wear a uniform at school* (rule imposed by others)
+- *We had to wait for two hours* (past necessity)
+- *I have to pay my rent at the beginning of the month*
+- *I have to finish this project before Friday. My boss needs it*
+- *I have to wake up at 7:00 AM for my English class*
+
+## may & might (possibility) = potere, potrebbe
+`may` + `base verb`
+- **use for**: Possibility or formal permission
+- **what they mean**: These modals help you talk about things that are possible but not certain
+- **note**: Slightly more formal or certain than `might`
+- **note**: formal, respectful (academic, professional, serious situations)
+
+examples:
+- *It may rain later today* (possibility)
+- *She may not come to the party* (possibility)
+- *May I ask you a question?* (formal permission)
+- *I may visit my grandparents next weekend if I have time*
+- *I may cook pizza tonight because I already bought the cheese*
+- *I may buy a new phone next month because my old one is very slow*
+- *I may study English for thirty minutes before I go to sleep*
+
+`might` + `base verb`
+- **use for**: Less certain possibility
+- **what they mean**: These modals help you talk about things that are possible but not certain
+
+examples:
+- *I might go to the beach this weekend* (uncertain plan)
+- *This might be the solution to our problem* (uncertain possibility)
+- *She might have missed the bus* (possible explanation) (perfect tense)
+- *I might go to the cinema tomorrow, but only if it rains*
+- *I might travel to London next year, but it is very expensive*
+- *I might try that new Japanese restaurant, but I do not know if I like sushi*
+- *I might go for a run later, but I am feeling a little tired*
+
+1. -ING Adjectives
+Meaning: Describes the person, thing, or situation that causes a feeling.
+Structure:
+Subject + be + -ing adjective
+Examples
+The movie is boring. (It causes boredom.)
+The lesson is interesting. (It causes interest.)
+The news was surprising. (It caused surprise.)
+The game is exciting. (It causes excitement.)
+His jokes are amusing. (They make people laugh.)
+Think of -ing as the CAUSE of the feeling.
+
+2. -ED Adjectives
+Meaning: Describes how someone feels because of something.
+Structure:
+Subject + be + -ed adjective
+Examples
+I am bored. (I feel boredom.)
+She is interested in history. (She feels interest.)
+We were surprised by the news. (We felt surprise.)
+They are excited about the trip. (They feel excitement.)
+He felt amused by the joke. (He felt entertained.)
+Think of -ed as the PERSON'S feeling.
+Memory Tip
+-ING = Gives the feeling
+-ED = Gets the feeling
+The movie is exciting. → It gives excitement.
+ I am excited. → I get the feeling of excitement.
