@@ -1,0 +1,37 @@
+name: Firebase backup
+
+on:
+  schedule:
+    # every Sunday at 03:00 UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run Firebase backup
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+        run: yarn backup:firebase
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebase-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 90
+          if-no-files-found: error

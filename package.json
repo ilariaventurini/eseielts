@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "deploy:firestore-rules": "npx --yes firebase-tools deploy --only firestore:rules"
+    "deploy:firestore-rules": "npx --yes firebase-tools deploy --only firestore:rules",
+    "backup:firebase": "tsx --env-file-if-exists=.env scripts/backup-firebase.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -46,7 +47,9 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "netlify-cli": "^26.0.1",
+    "firebase-admin": "^13.6.0",
     "prettier": "^3.5.3",
+    "tsx": "^4.21.0",
     "tailwindcss": "^4.2.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",

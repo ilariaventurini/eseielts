@@ -26,3 +26,8 @@ dist-ssr
 # Local Netlify folder
 .netlify
 .env
+
+# firebase backup output + credentials
+backups/
+firebase-service-account.json
+*-firebase-adminsdk-*.json
